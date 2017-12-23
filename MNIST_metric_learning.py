@@ -19,11 +19,21 @@ from chainer import Variable, Chain, optimizers
 from chainer.cuda import cupy
 
 if __name__ == '__main__':
-    x_train, t_train, x_test, t_test = load_mnist.load_mnist()
-    t_train = t_train.astype(np.int32)
-    t_test = t_test.astype(np.int32)
-    plt.matshow(x_train[0].reshape(28, 28), cmap=plt.cm.gray)
+    X_train, T_train, X_test, T_test = load_mnist.load_mnist()
+    T_train = T_train.astype(np.int32)
+    T_test = T_test.astype(np.int32)
+    plt.matshow(X_train[0].reshape(28, 28), cmap=plt.cm.gray)
     plt.show()
 
-    print ("x_train.shape:", x_train.shape)
-    print ("t_train.shape:", t_train.shape)
+    print ("X_train.shape:", X_train.shape)
+    print ("T_train.shape:", T_train.shape)
+    
+     # 60000ある訓練データセットを54000と6000の評価のデータセットに分割する
+    X_train, X_valid, T_train, T_valid = train_test_split(
+        X_train, T_train, test_size=0.1, random_state=100)
+    print ("X_train.shape:", X_train.shape)
+    print ("T_train.shape:", T_train.shape)
+    print ("X_valid.shape:", X_valid.shape)
+    print ("T_valid.shape:", T_valid.shape)
+    print ("X_test.shape:", X_test.shape)
+    print ("T_test.shape:", T_test.shape)
