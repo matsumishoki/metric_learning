@@ -67,7 +67,7 @@ if __name__ == '__main__':
     valid_loss_best = 10
     num_batches = num_train / batch_size  # ミニバッチの個数
     num_valid_batches = num_valid / batch_size
-    
+    i = 0
     # 学習させるループ
     for epoch in range(max_iteration):
         print ("epoch:", epoch)
@@ -79,35 +79,50 @@ if __name__ == '__main__':
         b_3_grad_norms = []
         #ループの時間を計測する
         time_start = time.time()
-        # 入力画像の一枚目と二枚目を無作為に選ぶ
-        perm_1 = np.random.permutation(num_train)
-        perm_2 = np.random.permutation(num_train)
-#        print("perm_1",perm_1)
-#        print("perm_2",perm_2)
-        # mini batchi SGDで重みを更新させるループ
-        for batch_indexes in np.array_split(perm_1, num_batches):
-            x_batch_1 = cuda.to_gpu(X_train[batch_indexes])
-            t_batch_1 = cuda.to_gpu(T_train[batch_indexes])
+        perm = np.random.permutation(num_train)
         
-        for batch_indexes in np.array_split(perm_2, num_batches):
-            x_batch_2 = cuda.to_gpu(X_train[batch_indexes])
-            t_batch_2 = cuda.to_gpu(T_train[batch_indexes])
-                        
-            # 勾配を初期化する            
-            model.zerograds()
-            # contrastive loss関数に入力するy_1,y_2を取得する
-            y_1 = model.loss_and_accuracy(x_batch_1, t_batch_1, True)
-            y_2 = model.loss_and_accuracy(x_batch_2, t_batch_2, True)
-            # tが同じならば1，異なるならば0を入力する
-            t=[]
-            for element in range(batch_size):
-                if t_batch_1[element] == t_batch_2[element]:
-                    t.append(1)
-                else:
-                    t.append(0)
-            t = np.array(t)
-            F.contrastive(y_1,y_2,t)
-            print("t",t)
+        for batch_indexes in np.split(perm, num_batches):
+            x_batch = cuda.to_gpu(X_train[batch_indexes])
+            t_batch = cuda.to_gpu(T_train[batch_indexes])
+            # 順伝播させる
+            y_batch = model.loss_and_accuracy(x_batch, t_batch, True)
+            # contrastive lossに入力するy1,y2,tを取得する
+            y1, y2 = F.split_axis(y_batch,2, axis=0)
+            t1, t2 = F.split_axis(t_batch,2, axis=0)
+            t = (t1.array==t2.array).astype(np.int32)        
+            loss = F.contrastive(y1, y2, t)
+            print("loss", loss)
+        # 入力画像の一枚目と二枚目を無作為に選ぶ
+#        perm_1 = np.random.permutation(num_train)
+#        perm_2 = np.random.permutation(num_train)
+##        print("perm_1",perm_1)
+##        print("perm_2",perm_2)
+#        # mini batchi SGDで重みを更新させるループ
+#        for batch_indexes in np.array_split(perm_1, num_batches):
+#            x_batch_1 = cuda.to_gpu(X_train[batch_indexes])
+#            t_batch_1 = cuda.to_gpu(T_train[batch_indexes])
+#        
+#        for batch_indexes in np.array_split(perm_2, num_batches):
+#            x_batch_2 = cuda.to_gpu(X_train[batch_indexes])
+#            t_batch_2 = cuda.to_gpu(T_train[batch_indexes])
+#                        
+#            # 勾配を初期化する            
+#            model.zerograds()
+#            # contrastive loss関数に入力するy_1,y_2を取得する
+#            y_1 = model.loss_and_accuracy(x_batch_1, t_batch_1, True)
+#            y_2 = model.loss_and_accuracy(x_batch_2, t_batch_2, True)
+#            # tが同じならば1，異なるならば0を入力する
+#            t=[]
+#            for element in range(batch_size):
+#                if t_batch_1[element] == t_batch_2[element]:
+#                    t.append(1)
+#                else:
+#                    t.append(0)
+#            t = np.array(t)
+#            t =chainer.cuda.to_gpu(t)
+#            F.contrastive(y_1,y_2,t)
+#            print("contrastive",F.contrastive(y_1,y_2,t))
+#            print("t",t)
 #            print("x_batch_1:", x_batch_1)
 #            print("t_batch_1:", t_batch_1)
 #            print("x_batch_2:", x_batch_2)
