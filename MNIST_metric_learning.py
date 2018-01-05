@@ -105,6 +105,8 @@ if __name__ == '__main__':
                     t.append(1)
                 else:
                     t.append(0)
+            t = np.array(t)
+            F.contrastive(y_1,y_2,t)
             print("t",t)
 #            print("x_batch_1:", x_batch_1)
 #            print("t_batch_1:", t_batch_1)
