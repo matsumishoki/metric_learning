@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Dec 23 14:09:58 2017
+Created on Fri Jan  5 14:31:49 2018
 
 @author: matsumi
 """
-import os
+
+import load_mnist
 import numpy as np
 from sklearn.cross_validation import train_test_split
 import matplotlib.pyplot as plt
@@ -19,28 +20,50 @@ from chainer import Variable, Chain, optimizers
 from chainer.cuda import cupy
 
 
+class ConvNet(Chain):
+        def __init__(self):
+            super(ConvNet, self).__init__(
+                    conv_1 = L.Convolution2D(1, 50, 5),
+                    conv_12 = L.Convolution2D(50, 50, 1),
+                    conv_2 = L.Convolution2D(50, 100, 5),
+                    conv_3 = L.Convolution2D(100, 200, 4),
+                    bn_1 = L.BatchNormalization(50),
+                    l_1 = L.Linear(200, 400),
+                    l_2 = L.Linear(400, 10),
+                    )
+        def loss_and_accuracy(self, x_data, t_data, train):
+            x = Variable(x_data.reshape(-1, 1, 28, 28))
+            t = Variable(t_data)
+            h = self.conv_1(x)
+            h = self.conv_12(h)
+            h = F.max_pooling_2d(h, 2)
+            h = F.relu(h)
+            h = self.conv_2(h)
+            h = F.max_pooling_2d(h, 2)
+            h = F.relu(h)
+            h = self.conv_3(h)
+            h = F.relu(h)
+            h = self.l_1(h)
+            h = F.relu(h)
+            y = self.l_2(h)
+#            print("y:",y)
+#            print("y_len:",len(y))
+            return y
+#            accuracy = F.accuracy(y, t)
+#            return F.softmax_cross_entropy(y, t), accuracy * 100
 
-class Block(chainer.Chain):
+def loss_and_accuracy_average(model, x_data, t_data, num_batches, train):
+    accuracies = []
+    losses = []
+    total_data = np.arange(len(x_data))
+    
+    for indexes in np.array_split(total_data, num_batches):
+        X_batch = cuda.to_gpu(x_data[indexes])
+        T_batch = cuda.to_gpu(t_data[indexes])
+        loss, accuracy = model.loss_and_accuracy(X_batch, T_batch, train)
+        accuracy_cpu = cuda.to_cpu(accuracy.data)
+        loss_cpu = cuda.to_cpu(loss.data)
+        accuracies.append(accuracy_cpu)
+        losses.append(loss_cpu)
+    return np.mean(accuracies), np.mean(losses)
 
-    """A convolution, batch norm, ReLU block.
-    A block in a feedforward network that performs a
-    convolution followed by batch normalization followed
-    by a ReLU activation.
-    For the convolution operation, a square filter size is used.
-    Args:
-        out_channels (int): The number of output channels.
-        ksize (int): The size of the filter is ksize x ksize.
-        pad (int): The padding to use for the convolution.
-    """
-
-    def __init__(self, out_channels, ksize, pad=1):
-        super(Block, self).__init__()
-        with self.init_scope():
-            self.conv = L.Convolution2D(None, out_channels, ksize, pad=pad,
-                                        nobias=True)
-            self.bn = L.BatchNormalization(out_channels)
-
-    def __call__(self, x):
-        h = self.conv(x)
-        h = self.bn(h)
-        return F.relu(h)
