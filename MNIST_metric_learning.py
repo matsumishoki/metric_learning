@@ -17,6 +17,7 @@ import chainer.optimizers
 from chainer import cuda
 from chainer import Variable, Chain, optimizers
 from chainer.cuda import cupy
+import MNIST_convnet as M
 
 if __name__ == '__main__':
     X_train, T_train, X_test, T_test = load_mnist.load_mnist()
@@ -37,3 +38,65 @@ if __name__ == '__main__':
     print ("T_valid.shape:", T_valid.shape)
     print ("X_test.shape:", X_test.shape)
     print ("T_test.shape:", T_test.shape)
+
+    num_train = len(X_train)
+    num_valid = len(X_valid)
+    num_test = len(X_test)
+
+    classes = np.unique(T_train)  # 定義されたクラスラベル
+    num_classes = len(classes)  # クラス数
+    dim_features = X_train.shape[-1]  # xの次元
+
+    # 超パラメータの定義
+    learning_rate = 0.0001  # learning_rate(学習率)を定義する
+    max_iteration = 1      # 学習させる回数
+    batch_size = 200       # ミニバッチ1つあたりのサンプル数
+ 
+    model = M.ConvNet().to_gpu()
+
+    # Optimizerの設定
+    optimizer = optimizers.Adam(learning_rate)
+    optimizer.setup(model)
+
+    loss_train_history = []
+    train_accuracy_history = []
+    loss_valid_history = []
+    valid_accuracy_history = []
+
+    valid_accuracy_best = 0
+    valid_loss_best = 10
+    num_batches = num_train / batch_size  # ミニバッチの個数
+    num_valid_batches = num_valid / batch_size
+    
+    # 学習させるループ
+    for epoch in range(max_iteration):
+        print ("epoch:", epoch)
+        w_1_grad_norms = []
+        w_2_grad_norms = []
+        w_3_grad_norms = []
+        b_1_grad_norms = []
+        b_2_grad_norms = []
+        b_3_grad_norms = []
+
+        # mini batchi SGDで重みを更新させるループ
+        time_start = time.time()
+        # 入力画像の一枚目と二枚目を無作為に選ぶ
+        perm_1 = np.random.permutation(num_train)
+        perm_2 = np.random.permutation(num_train)
+        print("perm_1",perm_1)
+        print("perm_2",perm_2)
+        for batch_indexes in np.array_split(perm_1, num_batches):
+            x_batch_1 = cuda.to_gpu(X_train[batch_indexes])
+            t_batch_1 = cuda.to_gpu(T_train[batch_indexes])
+        
+        for batch_indexes in np.array_split(perm_2, num_batches):
+            x_batch_2 = cuda.to_gpu(X_train[batch_indexes])
+            t_batch_2 = cuda.to_gpu(T_train[batch_indexes])
+            print("x_batch_1:", x_batch_1)
+            print("t_batch_1:", t_batch_1)
+            print("x_batch_2:", x_batch_2)
+            print("t_batch_2:", t_batch_2)
+            
+            # 勾配を初期化する            
+#            model.zerograds()
+
