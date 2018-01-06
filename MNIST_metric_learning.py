@@ -91,7 +91,7 @@ if __name__ == '__main__':
             model.zerograds()
             
             # 順伝播させる
-            y_batch = model.loss_and_accuracy(x_batch, t_batch, True)
+            y_batch = model.__call__(x_batch, t_batch, True)
             # contrastive lossに入力するy1,y2,tを取得する
             y1, y2 = F.split_axis(y_batch,2, axis=0)
             t1, t2 = F.split_axis(t_batch,2, axis=0)
@@ -112,17 +112,17 @@ if __name__ == '__main__':
         print ("[train] Loss:", train_loss)
         
         # 訓練データをX_trainからY_trainに変換する
-        Y_train = []
-        make_train_data_perm = np.random.permutation(num_train)
-        with chainer.no_backprop_mode():
-            for make in make_train_data_perm:
-                x_train_data = cuda.to_gpu(X_train[make])
-                t_train_data = cuda.to_gpu(T_train[make])
-                
-                y_train_data = model.loss_and_accuracy(x_train_data, t_train_data, False)
-                Y_train.append(y_train_data)
-                print('i',i)
-                i = i + 1
+#        Y_train = []
+#        make_train_data_perm = np.random.permutation(num_train)
+#        with chainer.no_backprop_mode():
+#            for make in make_train_data_perm:
+#                x_train_data = cuda.to_gpu(X_train[make])
+#                t_train_data = cuda.to_gpu(T_train[make])
+#                
+#                y_train_data = model.__call__(x_train_data, t_train_data, False)
+#                Y_train.append(y_train_data)
+#                print('i',i)
+#                i = i + 1
 
         # Yから距離行列Dに変換する
 
