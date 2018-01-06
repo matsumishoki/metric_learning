@@ -18,6 +18,7 @@ from chainer import cuda
 from chainer import Variable, Chain, optimizers
 from chainer.cuda import cupy
 import MNIST_convnet as M
+import math
 
 if __name__ == '__main__':
     X_train, T_train, X_test, T_test = load_mnist.load_mnist()
@@ -68,7 +69,9 @@ if __name__ == '__main__':
     num_batches = num_train / batch_size  # ミニバッチの個数
     num_valid_batches = num_valid / batch_size
     num_test_batches = num_test / batch_size
-
+    make_train_data_perm = np.random.permutation(num_train)
+    Y_train = []
+    i = 0
     # 学習させるループ
     for epoch in range(max_iteration):
         print ("epoch:", epoch)
@@ -110,6 +113,18 @@ if __name__ == '__main__':
         loss_train_history.append(train_loss)
         print ("[train] Loss:", train_loss)
         
+        # 訓練データをX_trainからY_trainに変換する
+        for make in make_train_data_perm:
+            x_train_data = cuda.to_gpu(X_train[make])
+            t_train_data = cuda.to_gpu(T_train[make])
+            
+            y_train_data = model.loss_and_accuracy(x_train_data, t_train_data, False)
+            Y_train.append(y_train_data)
+            print('i',i)
+            i = i + 1
+
+        # Yから距離行列Dに変換する
+
         # 検証用データセットの交差エントロピー誤差を表示する
         valid_loss = M.metric_loss_average(
                 model, X_valid, T_valid, num_valid_batches, False)
