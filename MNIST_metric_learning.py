@@ -91,7 +91,7 @@ if __name__ == '__main__':
             model.zerograds()
             
             # 順伝播させる
-            y_batch = model.__call__(x_batch, t_batch, True)
+            y_batch = model.__call__(x_batch, True)
             # contrastive lossに入力するy1,y2,tを取得する
             y1, y2 = F.split_axis(y_batch,2, axis=0)
             t1, t2 = F.split_axis(t_batch,2, axis=0)
@@ -119,7 +119,7 @@ if __name__ == '__main__':
 #                x_train_data = cuda.to_gpu(X_train[make])
 #                t_train_data = cuda.to_gpu(T_train[make])
 #                
-#                y_train_data = model.__call__(x_train_data, t_train_data, False)
+#                y_train_data = model.__call__(x_train_data, False)
 #                Y_train.append(y_train_data)
 #                print('i',i)
 #                i = i + 1
