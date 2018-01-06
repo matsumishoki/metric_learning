@@ -31,9 +31,8 @@ class ConvNet(Chain):
                     l_1 = L.Linear(200, 400),
                     l_2 = L.Linear(400, 10),
                     )
-        def __call__(self, x_data, t_data, train):
+        def __call__(self, x_data, train):
             x = Variable(x_data.reshape(-1, 1, 28, 28))
-            t = Variable(t_data)
             h = self.conv_1(x)
             h = self.conv_12(h)
             h = F.max_pooling_2d(h, 2)
@@ -47,23 +46,8 @@ class ConvNet(Chain):
             h = F.relu(h)
             Y = self.l_2(h)
             return Y
-#            accuracy = F.accuracy(y, t)
-#            return F.softmax_cross_entropy(y, t), accuracy * 100
 
-def loss_and_accuracy_average(model, x_data, t_data, num_batches, train):
-    accuracies = []
-    losses = []
-    total_data = np.arange(len(x_data))
-    
-    for indexes in np.array_split(total_data, num_batches):
-        X_batch = cuda.to_gpu(x_data[indexes])
-        T_batch = cuda.to_gpu(t_data[indexes])
-        loss, accuracy = model.loss_and_accuracy(X_batch, T_batch, train)
-        accuracy_cpu = cuda.to_cpu(accuracy.data)
-        loss_cpu = cuda.to_cpu(loss.data)
-        accuracies.append(accuracy_cpu)
-        losses.append(loss_cpu)
-    return np.mean(accuracies), np.mean(losses)
+
 
 def metric_loss_average(model, x_data, t_data, num_batches, train):
 #    accuracies = []
@@ -76,7 +60,7 @@ def metric_loss_average(model, x_data, t_data, num_batches, train):
 #        print("a")        
         with chainer.using_config('train', train):
             # 順伝播させる
-            Y = model.__call__(X_batch, T_batch, train)
+            Y = model.__call__(X_batch, train)
         Y1, Y2 = F.split_axis(Y,2, axis=0)
         T1, T2 = F.split_axis(T_batch,2, axis=0)
         T = (T1.array==T2.array).astype(np.int32) 
