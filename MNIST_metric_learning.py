@@ -51,7 +51,7 @@ if __name__ == '__main__':
     # 超パラメータの定義
     learning_rate = 0.0001  # learning_rate(学習率)を定義する
     max_iteration = 1      # 学習させる回数
-    batch_size = 200       # ミニバッチ1つあたりのサンプル数
+    batch_size = 300       # ミニバッチ1つあたりのサンプル数
  
     model = M.ConvNet().to_gpu()
 
@@ -66,9 +66,10 @@ if __name__ == '__main__':
 
     valid_accuracy_best = 0
     valid_loss_best = 10
-    num_batches = num_train / batch_size  # ミニバッチの個数
-    num_valid_batches = num_valid / batch_size
-    num_test_batches = num_test / batch_size
+    num_batches = num_train // batch_size  # ミニバッチの個数
+    train_extract_size =3
+    num_valid_batches = num_valid // batch_size
+    num_test_batches = num_test // batch_size
     i = 0
     # 学習させるループ
     for epoch in range(max_iteration):
@@ -82,7 +83,6 @@ if __name__ == '__main__':
         #ループの時間を計測する
         time_start = time.time()
         perm = np.random.permutation(num_train)
-        
         for batch_indexes in np.split(perm, num_batches):
             x_batch = cuda.to_gpu(X_train[batch_indexes])
             t_batch = cuda.to_gpu(T_train[batch_indexes])
@@ -114,8 +114,10 @@ if __name__ == '__main__':
         # 訓練データをX_trainからY_trainに変換する
         Y_train = []
         make_train_data_perm = np.random.permutation(num_train)
+        train_all_data = np.split(make_train_data_perm, num_batches)
+        train_extract_data = train_all_data[:train_extract_size]
         with chainer.no_backprop_mode():
-            for make in make_train_data_perm:
+            for make in train_extract_data:
                 x_train_data = cuda.to_gpu(X_train[make])
                 t_train_data = cuda.to_gpu(T_train[make])
                 
@@ -156,7 +158,7 @@ if __name__ == '__main__':
             
     # テストデータセットの交差エントロピー誤差を表示する
     test_loss = M.metric_loss_average(
-            model_best, X_test, T_test, num_test_batches, False)
+            model_best, X_test, T_test, num_valid_batches, False)
     print ("[valid] Loss (best):", valid_loss_best)
     print ("[test] Loss:", test_loss)
     print ("Best epoch:", epoch_best)
