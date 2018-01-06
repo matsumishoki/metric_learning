@@ -112,17 +112,17 @@ if __name__ == '__main__':
         print ("[train] Loss:", train_loss)
         
         # 訓練データをX_trainからY_trainに変換する
-#        Y_train = []
-#        make_train_data_perm = np.random.permutation(num_train)
-#        with chainer.no_backprop_mode():
-#            for make in make_train_data_perm:
-#                x_train_data = cuda.to_gpu(X_train[make])
-#                t_train_data = cuda.to_gpu(T_train[make])
-#                
-#                y_train_data = model.__call__(x_train_data, False)
-#                Y_train.append(y_train_data)
-#                print('i',i)
-#                i = i + 1
+        Y_train = []
+        make_train_data_perm = np.random.permutation(num_train)
+        with chainer.no_backprop_mode():
+            for make in make_train_data_perm:
+                x_train_data = cuda.to_gpu(X_train[make])
+                t_train_data = cuda.to_gpu(T_train[make])
+                
+                y_train_data = model.__call__(x_train_data, False)
+                Y_train.append(y_train_data.array)
+                print('i',i)
+                i = i + 1
 
         # Yから距離行列Dに変換する
 
