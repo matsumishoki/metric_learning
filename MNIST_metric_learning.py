@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     # 超パラメータの定義
     learning_rate = 0.0001  # learning_rate(学習率)を定義する
-    max_iteration = 100      # 学習させる回数
+    max_iteration = 1      # 学習させる回数
     batch_size = 200       # ミニバッチ1つあたりのサンプル数
  
     model = M.ConvNet().to_gpu()
@@ -67,7 +67,8 @@ if __name__ == '__main__':
     valid_loss_best = 10
     num_batches = num_train / batch_size  # ミニバッチの個数
     num_valid_batches = num_valid / batch_size
-    i = 0
+    num_test_batches = num_test / batch_size
+
     # 学習させるループ
     for epoch in range(max_iteration):
         print ("epoch:", epoch)
@@ -110,10 +111,10 @@ if __name__ == '__main__':
         print ("[train] Loss:", train_loss)
         
         # 検証用データセットの交差エントロピー誤差を表示する
-#        valid_loss = M.metric_loss_average(
-#                model, X_valid, T_valid, num_batches, False)
-#        loss_valid_history.append(valid_loss)
-#        print ("[valid] Loss:", valid_loss)
+        valid_loss = M.metric_loss_average(
+                model, X_valid, T_valid, num_valid_batches, False)
+        loss_valid_history.append(valid_loss)
+        print ("[valid] Loss:", valid_loss)
         
         # 学習曲線をプロットする
         # plot learning curves
@@ -122,10 +123,27 @@ if __name__ == '__main__':
         plt.plot(loss_train_history)
         plt.plot(loss_valid_history)
         plt.legend(["train", "valid"], loc="best")
-        plt.ylim([0.0, 0.05])
+        plt.ylim([0.0, 0.02])
         plt.grid()
         
         plt.tight_layout()
         plt.show()
         plt.draw()
 
+        # 検証データの誤差が良ければwの最善値を保存する
+        if valid_loss <= valid_loss_best:
+            model_best = copy.deepcopy(model)
+            epoch_best = epoch
+            valid_loss_best = valid_loss
+            print ("epoch_best:", epoch_best)
+            print ("valid_loss_best:", valid_loss_best)
+            
+    # テストデータセットの交差エントロピー誤差を表示する
+    test_loss = M.metric_loss_average(
+            model_best, X_test, T_test, num_test_batches, False)
+    print ("[valid] Loss (best):", valid_loss_best)
+    print ("[test] Loss:", test_loss)
+    print ("Best epoch:", epoch_best)
+    print ("Finish epoch:", epoch)
+    print ("Batch size:", batch_size)
+    print ("Learning rate:", learning_rate)
