@@ -31,7 +31,7 @@ class ConvNet(Chain):
                     l_1 = L.Linear(200, 400),
                     l_2 = L.Linear(400, 10),
                     )
-        def loss_and_accuracy(self, x_data, t_data, train):
+        def __call__(self, x_data, t_data, train):
             x = Variable(x_data.reshape(-1, 1, 28, 28))
             t = Variable(t_data)
             h = self.conv_1(x)
@@ -76,7 +76,7 @@ def metric_loss_average(model, x_data, t_data, num_batches, train):
 #        print("a")        
         with chainer.using_config('train', train):
             # 順伝播させる
-            Y = model.loss_and_accuracy(X_batch, T_batch, train)
+            Y = model.__call__(X_batch, T_batch, train)
         Y1, Y2 = F.split_axis(Y,2, axis=0)
         T1, T2 = F.split_axis(T_batch,2, axis=0)
         T = (T1.array==T2.array).astype(np.int32) 
