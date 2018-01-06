@@ -69,8 +69,6 @@ if __name__ == '__main__':
     num_batches = num_train / batch_size  # ミニバッチの個数
     num_valid_batches = num_valid / batch_size
     num_test_batches = num_test / batch_size
-    make_train_data_perm = np.random.permutation(num_train)
-    Y_train = []
     i = 0
     # 学習させるループ
     for epoch in range(max_iteration):
@@ -114,6 +112,8 @@ if __name__ == '__main__':
         print ("[train] Loss:", train_loss)
         
         # 訓練データをX_trainからY_trainに変換する
+        Y_train = []
+        make_train_data_perm = np.random.permutation(num_train)
         with chainer.no_backprop_mode():
             for make in make_train_data_perm:
                 x_train_data = cuda.to_gpu(X_train[make])
