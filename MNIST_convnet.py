@@ -45,8 +45,8 @@ class ConvNet(Chain):
             h = F.relu(h)
             h = self.l_1(h)
             h = F.relu(h)
-            y = self.l_2(h)
-            return y
+            Y = self.l_2(h)
+            return Y
 #            accuracy = F.accuracy(y, t)
 #            return F.softmax_cross_entropy(y, t), accuracy * 100
 
@@ -77,11 +77,10 @@ def metric_loss_average(model, x_data, t_data, num_batches, train):
         with chainer.using_config('train', train):
             # 順伝播させる
             Y = model.loss_and_accuracy(X_batch, T_batch, train)
-        Y1, Y2 = F.split_axis(Y,2, axis=0)    
+        Y1, Y2 = F.split_axis(Y,2, axis=0)
         T1, T2 = F.split_axis(T_batch,2, axis=0)
-        T = (T1.array==T2.array).astype(np.int32)        
+        T = (T1.array==T2.array).astype(np.int32) 
         loss = F.contrastive(Y1, Y2, T)
         loss_cpu = cuda.to_cpu(loss.data)
         losses.append(loss_cpu)
     return np.mean(losses)
-    
