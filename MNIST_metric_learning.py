@@ -4,7 +4,7 @@ Created on Sat Dec 23 14:15:01 2017
 
 @author: matsumi
 """
-import make_train_perm as mtpd
+import make_data_perm as mdp
 import load_mnist
 import numpy as np
 from sklearn.cross_validation import train_test_split
@@ -114,7 +114,7 @@ if __name__ == '__main__':
         # 訓練データをX_trainからY_trainに変換する
         Y_train = []
         T_train_data = []
-        train_extract_data = mtpd.make_train_perm_data(T_train, train_extract_size)
+        train_extract_data = mdp.make_data_perm_data(T_train, train_extract_size)
         x_train_data = X_train[train_extract_data]
         T_train_data = T_train[train_extract_data]
         with chainer.no_backprop_mode():

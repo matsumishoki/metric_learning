@@ -8,7 +8,7 @@ Created on Sun Jan  7 16:59:00 2018
 import numpy as np
 
 
-def make_train_perm_data(T_train, data_size):
+def make_data_perm_data(T_train, data_size):
     num_examples = len(T_train)
     num_classes = len(np.unique(T_train))
     
@@ -22,6 +22,6 @@ def make_train_perm_data(T_train, data_size):
 if __name__ == '__main__':
     labels = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2])
     for i in range(10):
-        indexes = make_train_perm_data(labels, 3)
+        indexes = make_data_perm_data(labels, 3)
         np.testing.assert_array_equal(labels[indexes],
                                       [0, 0, 0, 1, 1, 1, 2, 2, 2])
