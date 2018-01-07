@@ -67,7 +67,7 @@ if __name__ == '__main__':
     valid_accuracy_best = 0
     valid_loss_best = 10
     num_batches = num_train // batch_size  # ミニバッチの個数
-    train_extract_size =4
+    train_extract_size =100 # 抽出するデータ量を定義する
     num_valid_batches = num_valid // batch_size
     num_test_batches = num_test // batch_size
     i = 0
@@ -113,11 +113,10 @@ if __name__ == '__main__':
         
         # 訓練データをX_trainからY_trainに変換する
         Y_train = []
-        T_train_label = []
 #        make_train_data_perm = np.random.permutation(num_train)
 #        train_all_data = np.split(make_train_data_perm, num_batches)
 #        train_extract_data = train_all_data[:train_extract_size]
-        train_extract_data = mtpd.make_train_perm_data(T_train)
+        train_extract_data = mtpd.make_train_perm_data(T_train, train_extract_size)
         with chainer.no_backprop_mode():
             for make in train_extract_data:
                 x_train_data = cuda.to_gpu(X_train[make])
@@ -125,16 +124,12 @@ if __name__ == '__main__':
                 
                 y_train_data = model.__call__(x_train_data, False)
                 Y_train.append(y_train_data.array)
-                T_train_label.append(t_train_data)
                 print('i',i)
                 i = i + 1
 
         # Yから距離行列Dに変換する
         Y_train = cuda.to_cpu(Y_train)
-        T_train_label = cuda.to_cpu(T_train_label)
         Y_train = np.vstack(Y_train)
-        T_train_label = np.vstack(T_train_label)
-        
         D = pairwise_distances(Y_train)
         sorted_D = np.argsort(D, axis=1)
         
