@@ -28,3 +28,12 @@ def softs(num_train_small_data,rank_labels,T_data):
         cheak_True_or_False.append(np.any(soft_top))
     average_soft_top_accuracy = (np.count_nonzero(cheak_True_or_False)/num_train_small_data)*100 
     return average_soft_top_accuracy
+
+
+def hards(num_train_small_data,rank_labels,T_data):
+    cheak_True_or_False = []
+    for i in range(num_train_small_data):
+        hard_top = T_data[i]==rank_labels[i]
+        cheak_True_or_False.append(np.all(hard_top))
+    average_hard_top_accuracy = (np.count_nonzero(cheak_True_or_False)/num_train_small_data)*100 
+    return average_hard_top_accuracy
