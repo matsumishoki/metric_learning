@@ -21,7 +21,7 @@ import MNIST_convnet as M
 from sklearn.metrics import pairwise_distances
 
 
-def make_train_perm_data(T_train):
+def make_train_perm_data(T_train, data_size):
     T_train = np.sort(T_train)
     num_train = len(T_train)
     i_0 = []
@@ -67,16 +67,16 @@ def make_train_perm_data(T_train):
             i_9.append(i)
 #            num_9 = num_8 + len(i_9)
 
-    m_0 = np.random.permutation(i_0)[:100]
-    m_1 = np.random.permutation(i_1)[:100]
-    m_2 = np.random.permutation(i_2)[:100]
-    m_3 = np.random.permutation(i_3)[:100]
-    m_4 = np.random.permutation(i_4)[:100]
-    m_5 = np.random.permutation(i_5)[:100]
-    m_6 = np.random.permutation(i_6)[:100]
-    m_7 = np.random.permutation(i_7)[:100]
-    m_8 = np.random.permutation(i_8)[:100]
-    m_9 = np.random.permutation(i_9)[:100]
+    m_0 = np.random.permutation(i_0)[:data_size]
+    m_1 = np.random.permutation(i_1)[:data_size]
+    m_2 = np.random.permutation(i_2)[:data_size]
+    m_3 = np.random.permutation(i_3)[:data_size]
+    m_4 = np.random.permutation(i_4)[:data_size]
+    m_5 = np.random.permutation(i_5)[:data_size]
+    m_6 = np.random.permutation(i_6)[:data_size]
+    m_7 = np.random.permutation(i_7)[:data_size]
+    m_8 = np.random.permutation(i_8)[:data_size]
+    m_9 = np.random.permutation(i_9)[:data_size]
     train_data = list(np.vstack((m_0, m_1, m_2, m_3, m_4, m_5, m_6, m_7, m_8, m_9)))
     return train_data
     
