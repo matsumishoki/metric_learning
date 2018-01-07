@@ -114,21 +114,16 @@ if __name__ == '__main__':
         # 訓練データをX_trainからY_trainに変換する
         Y_train = []
         T_train_data = []
-#        make_train_data_perm = np.random.permutation(num_train)
-#        train_all_data = np.split(make_train_data_perm, num_batches)
-#        train_extract_data = train_all_data[:train_extract_size]
         train_extract_data = mtpd.make_train_perm_data(T_train, train_extract_size)
+        x_train_data = X_train[train_extract_data]
+        T_train_data = T_train[train_extract_data]
         with chainer.no_backprop_mode():
-            for make in train_extract_data:
-                print("make",make)
-                x_train_data = cuda.to_gpu(X_train[make])
-                t_train_data = cuda.to_gpu(T_train[make])
-                
-                y_train_data = model.__call__(x_train_data, False)
-                Y_train.append(y_train_data.array)
-                T_train_data.append(t_train_data)
-                print('i',i)
-                i = i + 1
+#            print("make",make)
+            x_train_data = cuda.to_gpu(x_train_data)            
+            y_train = model(x_train_data, False)
+            Y_train.append(y_train.array)
+            print('i',i)
+            i = i + 1
 
         # Yから距離行列Dに変換する
         Y_train = cuda.to_cpu(Y_train)
