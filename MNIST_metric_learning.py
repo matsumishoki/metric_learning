@@ -51,9 +51,10 @@ if __name__ == '__main__':
     optimizer.setup(model)
 
     loss_train_history = []
-    train_accuracy_history = []
+    train_accuracy_history_1 = []
     train_accuracy_history_2 = []
     train_accuracy_history_5 = []
+    train_accuracy_history_10 = []
     loss_valid_history = []
     valid_accuracy_history = []
 
@@ -126,6 +127,7 @@ if __name__ == '__main__':
         rank_labels_1=[]
         rank_labels_2=[]
         rank_labels_5=[]
+        rank_labels_10=[]
         softs=[] 
         K = 11  # top10までのKを定義する
         for d_i in D:
@@ -141,33 +143,24 @@ if __name__ == '__main__':
             rank_labels_2.append(ranked_label[1:3])
             # soft top-5の準備
             rank_labels_5.append(ranked_label[1:6])
+            # soft top-10の準備
+            rank_labels_10.append(ranked_label[1:11])
         # 最初のsoft top-1を求める
-        softs_top_1 = []
-        for i in range(num_train_small_data):
-            soft_top_1 = T_train_data[i]==rank_labels_1[i]
-            softs_top_1.append(soft_top_1)
-        average_soft_top_1_accuracy = (np.count_nonzero(softs_top_1)/num_train_small_data)*100 
-        print("average_soft_top_1_accuracy:", average_soft_top_1_accuracy)
-        train_accuracy_history.append(average_soft_top_1_accuracy)
-        
+        train_soft_top1_accuracy = e.softs(num_train_small_data,rank_labels_1,T_train_data)
+        print("train_soft_top1_accuracy:", train_soft_top1_accuracy)
+        train_accuracy_history_1.append(train_soft_top1_accuracy)
         # soft-top2を求める
-        train_soft_top2_accuracy = e.softs(num_train_small_data,rank_labels_2,T_train_data,train_accuracy_history_2)
-#        cheak_True_or_False = []
-#        for i in range(num_train_small_data):
-#            soft_top_2 = T_train_data[i]==rank_labels_2[i]
-#            cheak_True_or_False.append(np.any(soft_top_2))
-#        average_soft_top_2_accuracy = (np.count_nonzero(cheak_True_or_False)/num_train_small_data)*100 
-#        print("average_soft_top_2_accuracy:", average_soft_top_2_accuracy)
-#        train_accuracy_history_2.append(average_soft_top_2_accuracy)
-        
+        train_soft_top2_accuracy = e.softs(num_train_small_data,rank_labels_2,T_train_data)
+        print("train_soft_top2_accuracy:", train_soft_top2_accuracy) 
+        train_accuracy_history_2.append(train_soft_top2_accuracy)
         # soft-top5を求める
-        cheak_True_or_False_5 = []
-        for i in range(num_train_small_data):
-            soft_top_5 = T_train_data[i]==rank_labels_5[i]
-            cheak_True_or_False_5.append(np.any(soft_top_5))
-        average_soft_top_5_accuracy = (np.count_nonzero(cheak_True_or_False_5)/num_train_small_data)*100 
-        print("average_soft_top_5_accuracy:", average_soft_top_5_accuracy)
-        train_accuracy_history_5.append(average_soft_top_5_accuracy)    
+        train_soft_top5_accuracy = e.softs(num_train_small_data,rank_labels_5,T_train_data)
+        print("train_soft_top5_accuracy:", train_soft_top5_accuracy)
+        train_accuracy_history_5.append(train_soft_top5_accuracy) 
+        # soft-top10を求める
+        train_soft_top10_accuracy = e.softs(num_train_small_data,rank_labels_10,T_train_data) 
+        print("train_soft_top10_accuracy:", train_soft_top10_accuracy)
+        train_accuracy_history_10.append(train_soft_top10_accuracy)   
         
         # 検証用データセットの交差エントロピー誤差を表示する
         valid_loss = M.metric_loss_average(
@@ -187,10 +180,11 @@ if __name__ == '__main__':
                 
         plt.subplot(1, 2, 2)
         plt.title("Accuracy")
-        plt.plot(train_accuracy_history)
-        plt.plot(train_soft_top2_accuracy)
+        plt.plot(train_accuracy_history_1)
+        plt.plot(train_accuracy_history_2)
         plt.plot(train_accuracy_history_5)
-        plt.legend(["train soft top-1","train soft top-2","train soft top-5"], loc="best")
+        plt.plot(train_accuracy_history_10)
+        plt.legend(["train soft top-1","train soft top-2","train soft top-5","train soft top-10"], loc="best")
         plt.ylim([90, 100])
         plt.grid()
         
