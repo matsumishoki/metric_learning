@@ -21,13 +21,11 @@ from chainer.cuda import cupy
 import MNIST_convnet as M
 from sklearn.metrics import pairwise_distances
 
-def softs(num_train_small_data,rank_labels,T_data,accuracy_history):
+def softs(num_train_small_data,rank_labels,T_data):
     cheak_True_or_False = []
     for i in range(num_train_small_data):
         soft_top = T_data[i]==rank_labels[i]
         cheak_True_or_False.append(np.any(soft_top))
     average_soft_top_2_accuracy = (np.count_nonzero(cheak_True_or_False)/num_train_small_data)*100 
-    print("average_soft_top_2_accuracy:", average_soft_top_2_accuracy)
-    accuracy_history.append(average_soft_top_2_accuracy)
-    return accuracy_history
+    return average_soft_top_2_accuracy
     
