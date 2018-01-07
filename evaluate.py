@@ -26,6 +26,5 @@ def softs(num_train_small_data,rank_labels,T_data):
     for i in range(num_train_small_data):
         soft_top = T_data[i]==rank_labels[i]
         cheak_True_or_False.append(np.any(soft_top))
-    average_soft_top_2_accuracy = (np.count_nonzero(cheak_True_or_False)/num_train_small_data)*100 
-    return average_soft_top_2_accuracy
-    
+    average_soft_top_accuracy = (np.count_nonzero(cheak_True_or_False)/num_train_small_data)*100 
+    return average_soft_top_accuracy
