@@ -55,6 +55,12 @@ if __name__ == '__main__':
     train_accuracy_history_2 = []
     train_accuracy_history_5 = []
     train_accuracy_history_10 = []
+    train_accuracy_history_2_hard = []
+    train_accuracy_history_3_hard = []
+    train_accuracy_history_4_hard = []
+    train_accuracy_history_2_retrieval = []
+    train_accuracy_history_3_retrieval = []
+    train_accuracy_history_4_retrieval = []
     loss_valid_history = []
     valid_accuracy_history = []
 
@@ -126,6 +132,8 @@ if __name__ == '__main__':
         sorted_D=[]
         rank_labels_1=[]
         rank_labels_2=[]
+        rank_labels_3=[]
+        rank_labels_4=[]
         rank_labels_5=[]
         rank_labels_10=[]
         softs=[] 
@@ -141,6 +149,10 @@ if __name__ == '__main__':
             rank_labels_1.append(ranked_label[1])
             # top-2の準備
             rank_labels_2.append(ranked_label[1:3])
+            # top-3の準備
+            rank_labels_3.append(ranked_label[1:4])
+            # top-4の準備
+            rank_labels_4.append(ranked_label[1:5])
             # soft top-5の準備
             rank_labels_5.append(ranked_label[1:6])
             # soft top-10の準備
@@ -160,7 +172,31 @@ if __name__ == '__main__':
         # soft-top10を求める
         train_soft_top10_accuracy = e.softs(num_train_small_data,rank_labels_10,T_train_data) 
         print("train_soft_top10_accuracy:", train_soft_top10_accuracy)
-        train_accuracy_history_10.append(train_soft_top10_accuracy)   
+        train_accuracy_history_10.append(train_soft_top10_accuracy)
+        # hard-top2を求める
+        train_hard_top2_accuracy = e.hards(num_train_small_data,rank_labels_2,T_train_data)
+        print("train_hard_top2_accuracy:", train_hard_top2_accuracy) 
+        train_accuracy_history_2_hard.append(train_hard_top2_accuracy)
+        # hard-top3を求める
+        train_hard_top3_accuracy = e.hards(num_train_small_data,rank_labels_3,T_train_data)
+        print("train_hard_top3_accuracy:", train_hard_top3_accuracy) 
+        train_accuracy_history_3_hard.append(train_hard_top3_accuracy)
+        # hard-top4を求める
+        train_hard_top4_accuracy = e.hards(num_train_small_data,rank_labels_4,T_train_data)
+        print("train_hard_top4_accuracy:", train_hard_top4_accuracy) 
+        train_accuracy_history_4_hard.append(train_hard_top4_accuracy)
+        # retrieval-top2を求める
+        train_retrieval_top2_accuracy = e.retrievals(num_train_small_data,rank_labels_2,T_train_data)
+        print("train_retrieval_top2_accuracy:", train_retrieval_top2_accuracy) 
+        train_accuracy_history_2_retrieval.append(train_retrieval_top2_accuracy)
+        # retrieval-top3を求める
+        train_retrieval_top3_accuracy = e.retrievals(num_train_small_data,rank_labels_3,T_train_data)
+        print("train_retrieval_top3_accuracy:", train_retrieval_top3_accuracy) 
+        train_accuracy_history_3_retrieval.append(train_retrieval_top3_accuracy)
+        # retrieval-top4を求める
+        train_retrieval_top4_accuracy = e.retrievals(num_train_small_data,rank_labels_4,T_train_data)
+        print("train_retrieval_top4_accuracy:", train_retrieval_top4_accuracy) 
+        train_accuracy_history_4_retrieval.append(train_retrieval_top4_accuracy)
         
         # 検証用データセットの交差エントロピー誤差を表示する
         valid_loss = M.metric_loss_average(
