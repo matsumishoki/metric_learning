@@ -4,6 +4,7 @@ Created on Sat Dec 23 14:15:01 2017
 
 @author: matsumi
 """
+import make_train_perm as mtpd
 import load_mnist
 import numpy as np
 from sklearn.cross_validation import train_test_split
@@ -39,7 +40,6 @@ if __name__ == '__main__':
     print ("T_valid.shape:", T_valid.shape)
     print ("X_test.shape:", X_test.shape)
     print ("T_test.shape:", T_test.shape)
-
     num_train = len(X_train)
     num_valid = len(X_valid)
     num_test = len(X_test)
@@ -113,9 +113,11 @@ if __name__ == '__main__':
         
         # 訓練データをX_trainからY_trainに変換する
         Y_train = []
-        make_train_data_perm = np.random.permutation(num_train)
-        train_all_data = np.split(make_train_data_perm, num_batches)
-        train_extract_data = train_all_data[:train_extract_size]
+        T_train_label = []
+#        make_train_data_perm = np.random.permutation(num_train)
+#        train_all_data = np.split(make_train_data_perm, num_batches)
+#        train_extract_data = train_all_data[:train_extract_size]
+        train_extract_data = mtpd.make_train_perm_data(T_train)
         with chainer.no_backprop_mode():
             for make in train_extract_data:
                 x_train_data = cuda.to_gpu(X_train[make])
@@ -123,13 +125,19 @@ if __name__ == '__main__':
                 
                 y_train_data = model.__call__(x_train_data, False)
                 Y_train.append(y_train_data.array)
+                T_train_label.append(t_train_data)
                 print('i',i)
                 i = i + 1
 
         # Yから距離行列Dに変換する
         Y_train = cuda.to_cpu(Y_train)
+        T_train_label = cuda.to_cpu(T_train_label)
         Y_train = np.vstack(Y_train)
+        T_train_label = np.vstack(T_train_label)
+        
         D = pairwise_distances(Y_train)
+        sorted_D = np.argsort(D, axis=1)
+        
         
         # 検証用データセットの交差エントロピー誤差を表示する
         valid_loss = M.metric_loss_average(
