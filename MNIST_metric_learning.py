@@ -18,7 +18,7 @@ from chainer import cuda
 from chainer import Variable, Chain, optimizers
 from chainer.cuda import cupy
 import MNIST_convnet as M
-import math
+from sklearn.metrics import pairwise_distances
 
 if __name__ == '__main__':
     X_train, T_train, X_test, T_test = load_mnist.load_mnist()
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     valid_accuracy_best = 0
     valid_loss_best = 10
     num_batches = num_train // batch_size  # ミニバッチの個数
-    train_extract_size =3
+    train_extract_size =4
     num_valid_batches = num_valid // batch_size
     num_test_batches = num_test // batch_size
     i = 0
@@ -127,7 +127,10 @@ if __name__ == '__main__':
                 i = i + 1
 
         # Yから距離行列Dに変換する
-
+        Y_train = cuda.to_cpu(Y_train)
+        Y_train = np.vstack(Y_train)
+        D = pairwise_distances(Y_train)
+        
         # 検証用データセットの交差エントロピー誤差を表示する
         valid_loss = M.metric_loss_average(
                 model, X_valid, T_valid, num_valid_batches, False)
