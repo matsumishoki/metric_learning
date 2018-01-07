@@ -4,6 +4,7 @@ Created on Sat Dec 23 14:15:01 2017
 
 @author: matsumi
 """
+import evaluate as e
 import make_data_perm as mdp
 import load_mnist
 import numpy as np
@@ -25,21 +26,11 @@ if __name__ == '__main__':
     X_train, T_train, X_test, T_test = load_mnist.load_mnist()
     T_train = T_train.astype(np.int32)
     T_test = T_test.astype(np.int32)
-    plt.matshow(X_train[0].reshape(28, 28), cmap=plt.cm.gray)
-    plt.show()
 
-    print ("X_train.shape:", X_train.shape)
-    print ("T_train.shape:", T_train.shape)
     
      # 60000ある訓練データセットを54000と6000の評価のデータセットに分割する
     X_train, X_valid, T_train, T_valid = train_test_split(
         X_train, T_train, test_size=0.1, random_state=100)
-    print ("X_train.shape:", X_train.shape)
-    print ("T_train.shape:", T_train.shape)
-    print ("X_valid.shape:", X_valid.shape)
-    print ("T_valid.shape:", T_valid.shape)
-    print ("X_test.shape:", X_test.shape)
-    print ("T_test.shape:", T_test.shape)
     num_train = len(X_train)
     num_valid = len(X_valid)
     num_test = len(X_test)
@@ -61,6 +52,8 @@ if __name__ == '__main__':
 
     loss_train_history = []
     train_accuracy_history = []
+    train_accuracy_history_2 = []
+    train_accuracy_history_5 = []
     loss_valid_history = []
     valid_accuracy_history = []
 
@@ -119,7 +112,6 @@ if __name__ == '__main__':
         T_train_data = T_train[train_extract_data]
         num_train_small_data = len(T_train_data)
         with chainer.no_backprop_mode():
-#            print("make",make)
             x_train_data = cuda.to_gpu(x_train_data)            
             y_train = model(x_train_data, False)
             Y_train.append(y_train.array)
@@ -131,7 +123,9 @@ if __name__ == '__main__':
         
         # softを求める
         sorted_D=[]
-        rank_labels=[]
+        rank_labels_1=[]
+        rank_labels_2=[]
+        rank_labels_5=[]
         softs=[] 
         K = 11  # top10までのKを定義する
         for d_i in D:
@@ -142,14 +136,38 @@ if __name__ == '__main__':
 #            # 最初の距離は0であるため除去する
 #            rank_labels.append(ranked_label[1:])
             # 最初のsoft top-1の準備
-            rank_labels.append(ranked_label[1])
+            rank_labels_1.append(ranked_label[1])
+            # top-2の準備
+            rank_labels_2.append(ranked_label[1:3])
+            # soft top-5の準備
+            rank_labels_5.append(ranked_label[1:6])
         # 最初のsoft top-1を求める
         softs_top_1 = []
         for i in range(num_train_small_data):
-            soft_top_1 = T_train_data[i]==rank_labels[i]
+            soft_top_1 = T_train_data[i]==rank_labels_1[i]
             softs_top_1.append(soft_top_1)
         average_soft_top_1_accuracy = (np.count_nonzero(softs_top_1)/num_train_small_data)*100 
         print("average_soft_top_1_accuracy:", average_soft_top_1_accuracy)
+        train_accuracy_history.append(average_soft_top_1_accuracy)
+        
+        # soft-top2を求める
+        train_soft_top2_accuracy = e.softs(num_train_small_data,rank_labels_2,T_train_data,train_accuracy_history_2)
+#        cheak_True_or_False = []
+#        for i in range(num_train_small_data):
+#            soft_top_2 = T_train_data[i]==rank_labels_2[i]
+#            cheak_True_or_False.append(np.any(soft_top_2))
+#        average_soft_top_2_accuracy = (np.count_nonzero(cheak_True_or_False)/num_train_small_data)*100 
+#        print("average_soft_top_2_accuracy:", average_soft_top_2_accuracy)
+#        train_accuracy_history_2.append(average_soft_top_2_accuracy)
+        
+        # soft-top5を求める
+        cheak_True_or_False_5 = []
+        for i in range(num_train_small_data):
+            soft_top_5 = T_train_data[i]==rank_labels_5[i]
+            cheak_True_or_False_5.append(np.any(soft_top_5))
+        average_soft_top_5_accuracy = (np.count_nonzero(cheak_True_or_False_5)/num_train_small_data)*100 
+        print("average_soft_top_5_accuracy:", average_soft_top_5_accuracy)
+        train_accuracy_history_5.append(average_soft_top_5_accuracy)    
         
         # 検証用データセットの交差エントロピー誤差を表示する
         valid_loss = M.metric_loss_average(
@@ -165,6 +183,15 @@ if __name__ == '__main__':
         plt.plot(loss_valid_history)
         plt.legend(["train", "valid"], loc="best")
         plt.ylim([0.0, 0.02])
+        plt.grid()
+                
+        plt.subplot(1, 2, 2)
+        plt.title("Accuracy")
+        plt.plot(train_accuracy_history)
+        plt.plot(train_soft_top2_accuracy)
+        plt.plot(train_accuracy_history_5)
+        plt.legend(["train soft top-1","train soft top-2","train soft top-5"], loc="best")
+        plt.ylim([90, 100])
         plt.grid()
         
         plt.tight_layout()
