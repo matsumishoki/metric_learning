@@ -50,7 +50,7 @@ if __name__ == '__main__':
 
     # 超パラメータの定義
     learning_rate = 0.0001  # learning_rate(学習率)を定義する
-    max_iteration = 1      # 学習させる回数
+    max_iteration = 10      # 学習させる回数
     batch_size = 300       # ミニバッチ1つあたりのサンプル数
  
     model = M.ConvNet().to_gpu()
@@ -117,6 +117,7 @@ if __name__ == '__main__':
         train_extract_data = mdp.make_data_perm_data(T_train, train_extract_size)
         x_train_data = X_train[train_extract_data]
         T_train_data = T_train[train_extract_data]
+        num_train_small_data = len(T_train_data)
         with chainer.no_backprop_mode():
 #            print("make",make)
             x_train_data = cuda.to_gpu(x_train_data)            
@@ -138,10 +139,18 @@ if __name__ == '__main__':
             sorted_top_k_indexes = top_k_indexes[np.argsort(d_i[top_k_indexes])]
             sorted_D.append(sorted_top_k_indexes)
             ranked_label = T_train_data[sorted_top_k_indexes]
-            # 最初の距離は0であるため除去する
-            rank_labels.append(ranked_label[1:])
-            
-            
+#            # 最初の距離は0であるため除去する
+#            rank_labels.append(ranked_label[1:])
+            # 最初のsoft top-1の準備
+            rank_labels.append(ranked_label[1])
+        # 最初のsoft top-1を求める
+        softs_top_1 = []
+        for i in range(num_train_small_data):
+            soft_top_1 = T_train_data[i]==rank_labels[i]
+            softs_top_1.append(soft_top_1)
+        average_soft_top_1_accuracy = (np.count_nonzero(softs_top_1)/num_train_small_data)*100 
+        print("average_soft_top_1_accuracy:", average_soft_top_1_accuracy)
+        
         # 検証用データセットの交差エントロピー誤差を表示する
         valid_loss = M.metric_loss_average(
                 model, X_valid, T_valid, num_valid_batches, False)
