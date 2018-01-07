@@ -122,16 +122,26 @@ if __name__ == '__main__':
             x_train_data = cuda.to_gpu(x_train_data)            
             y_train = model(x_train_data, False)
             Y_train.append(y_train.array)
-            print('i',i)
-            i = i + 1
 
         # Yから距離行列Dに変換する
         Y_train = cuda.to_cpu(Y_train)
         Y_train = np.vstack(Y_train)
         D = pairwise_distances(Y_train)
-        sorted_D = np.argsort(D, axis=1)
         
-        
+        # softを求める
+        sorted_D=[]
+        rank_labels=[]
+        softs=[] 
+        K = 11  # top10までのKを定義する
+        for d_i in D:
+            top_k_indexes = np.argpartition(d_i, K)[:K]
+            sorted_top_k_indexes = top_k_indexes[np.argsort(d_i[top_k_indexes])]
+            sorted_D.append(sorted_top_k_indexes)
+            ranked_label = T_train_data[sorted_top_k_indexes]
+            # 最初の距離は0であるため除去する
+            rank_labels.append(ranked_label[1:])
+            
+            
         # 検証用データセットの交差エントロピー誤差を表示する
         valid_loss = M.metric_loss_average(
                 model, X_valid, T_valid, num_valid_batches, False)
