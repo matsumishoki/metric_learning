@@ -76,3 +76,26 @@ def retrievals(num_train_small_data,rank_labels,T_data, retrievals_K):
         retrieval_accuracy.append(average_retrievals_top_accuracy)
     retrievals_accuracies.append(retrieval_accuracy)
     return retrievals_accuracies
+
+def compute_soft_hard_retrieval_from_data(X, T, extract_size, model):
+    
+    # データを距離に変換する
+    extract_data = mdp.make_data_perm_data(T, extract_size)
+    D, T_data = mdp.distance_and_T_data(X,T,extract_data,model)
+    num_small_data = len(T_data)
+
+    K = 11  # top10までのKを定義する
+    rank_labels = making_top_k_data(D, T_data, K)
+    # trainのsoftを求める
+    softs_K = [1,2,5,10]
+    softs_accuracy = softs(num_small_data,rank_labels,T_data,softs_K)
+    
+    # hard top-kを求める
+    hards_K = [2,3,4]
+    hard_accuracy = hards(num_small_data,rank_labels,T_data,hards_K)
+
+    # retrievals top-kを求める
+    retrievals_K = [2,3,4]
+    retrieval_accuracy = retrievals(num_small_data,rank_labels,T_data,retrievals_K)
+
+    return softs_accuracy, hard_accuracy, retrieval_accuracy
