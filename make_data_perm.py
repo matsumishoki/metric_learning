@@ -26,7 +26,8 @@ def distance_and_T_data(X_data,T_data,extract_data, model):
     Y_data = []
     X_small_data = X_data[extract_data]
     T_small_data = T_data[extract_data]
-    with chainer.no_backprop_mode():
+    with chainer.no_backprop_mode(), chainer.using_config('train', False):
+#        with chainer.using_config('train', False):
         X_small_data = cuda.to_gpu(X_small_data)            
         y_train = model(X_small_data, False)
         Y_data.append(y_train.array)
