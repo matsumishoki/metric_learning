@@ -51,9 +51,9 @@ if __name__ == '__main__':
     optimizer.setup(model)
 
     loss_train_history = []
-    train_accuracy_history = []
-    train_accuracy_history_hard = []
-    train_accuracy_history_retrieval = []
+    train_softs_accuracies=[]
+    train_hards_accuracies=[]
+    train_retrievals_accuracies=[]
     loss_valid_history = []
     valid_accuracy_history = []
 
@@ -64,7 +64,6 @@ if __name__ == '__main__':
     num_valid_batches = num_valid // batch_size
     num_test_batches = num_test // batch_size
     i = 0
-    train_softs_accuracies=[]
     # 学習させるループ
     for epoch in range(max_iteration):
         print ("epoch:", epoch)
@@ -123,29 +122,17 @@ if __name__ == '__main__':
         train_softs_accuracies.append(train_softs_accuracy)
         train_soft_accuracies_data = np.array(train_softs_accuracies).reshape(epoch+1, len(softs_K))
         
-        hards_K = [2,3,4]
-        h_K = []
         # hard top-kを求める
-        for hard_k in hards_K:
-            train_hard_top1_accuracy = e.hards(num_train_small_data,rank_labels[:,:hard_k],T_train_data)
-#            print("train_hard_topi:", hard_k)
-#            print("accuracy:", train_hard_top1_accuracy)
-            train_accuracy_history_hard.append(train_hard_top1_accuracy)
-        h_K.append(train_accuracy_history_hard)
-        h = np.array(h_K).reshape(int((np.array(h_K).size)/len(hards_K)), len(hards_K))
-#        print("h",h)
+        hards_K = [2,3,4]
+        train_hard_accuracy = e.hards(num_train_small_data,rank_labels,T_train_data,hards_K)
+        train_hards_accuracies.append(train_hard_accuracy)
+        train_hards_accuracies_data = np.array(train_hards_accuracies).reshape(epoch+1, len(hards_K))
 
-        retrievals_K = [2,3,4]
-        r_K = []
         # retrievals top-kを求める
-        for ret_k in retrievals_K:
-            train_ret_top1_accuracy = e.retrievals(num_train_small_data,rank_labels[:,:ret_k],T_train_data)
-#            print("train_ret_topi:", ret_k)
-#            print("accuracy:", train_ret_top1_accuracy)
-            train_accuracy_history_retrieval.append(train_ret_top1_accuracy)
-        r_K.append(train_accuracy_history_retrieval)
-        r = np.array(r_K).reshape(int((np.array(r_K).size)/len(retrievals_K)), len(retrievals_K))
-#        print("r",r)
+        retrievals_K = [2,3,4]
+        train_retrieval_accuracy = e.retrievals(num_train_small_data,rank_labels,T_train_data,retrievals_K)
+        train_retrievals_accuracies.append(train_retrieval_accuracy)
+        train_retrievals_accuracies_data = np.array(train_retrievals_accuracies).reshape(epoch+1, len(hards_K))
 
         
 #        # 検証用データセットの交差エントロピー誤差を表示する
