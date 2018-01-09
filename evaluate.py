@@ -21,6 +21,20 @@ from chainer.cuda import cupy
 import MNIST_convnet as M
 from sklearn.metrics import pairwise_distances
 
+def making_top_k_data(D,labels,K):
+        sorted_D=[]
+        rank_labels=[]
+        for d_i in D:
+            top_k_indexes = np.argpartition(d_i, K)[:K]
+            sorted_top_k_indexes = top_k_indexes[np.argsort(d_i[top_k_indexes])]
+            sorted_D.append(sorted_top_k_indexes)
+            ranked_label = labels[sorted_top_k_indexes]
+            # 最初の距離は0であるため除去する
+            rank_labels.append(ranked_label[1:])
+        return np.array(rank_labels)
+    
+    
+
 def softs(num_train_small_data,rank_labels,T_data):
     cheak_True_or_False = []
     for i in range(num_train_small_data):
