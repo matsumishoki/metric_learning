@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     # 超パラメータの定義
     learning_rate = 0.0001  # learning_rate(学習率)を定義する
-    max_iteration = 2      # 学習させる回数
+    max_iteration = 3      # 学習させる回数
     batch_size = 300       # ミニバッチ1つあたりのサンプル数
  
     model = M.ConvNet().to_gpu()
@@ -51,16 +51,9 @@ if __name__ == '__main__':
     optimizer.setup(model)
 
     loss_train_history = []
-    train_accuracy_history_1 = []
-    train_accuracy_history_2 = []
-    train_accuracy_history_5 = []
-    train_accuracy_history_10 = []
-    train_accuracy_history_2_hard = []
-    train_accuracy_history_3_hard = []
-    train_accuracy_history_4_hard = []
-    train_accuracy_history_2_retrieval = []
-    train_accuracy_history_3_retrieval = []
-    train_accuracy_history_4_retrieval = []
+    train_accuracy_history = []
+    train_accuracy_history_hard = []
+    train_accuracy_history_retrieval = []
     loss_valid_history = []
     valid_accuracy_history = []
 
@@ -123,91 +116,87 @@ if __name__ == '__main__':
 
         K = 11  # top10までのKを定義する
         rank_labels = e.making_top_k_data(D, T_train_data, K)
-        # 最初のsoft top-1を求める
-        train_soft_top1_accuracy = e.softs(num_train_small_data,rank_labels[:,:1],T_train_data)
-        print("train_soft_top1_accuracy:", train_soft_top1_accuracy)
-        train_accuracy_history_1.append(train_soft_top1_accuracy)
-        # soft-top2を求める
-        train_soft_top2_accuracy = e.softs(num_train_small_data,rank_labels[:,:2],T_train_data)
-        print("train_soft_top2_accuracy:", train_soft_top2_accuracy) 
-        train_accuracy_history_2.append(train_soft_top2_accuracy)
-        # soft-top5を求める
-        train_soft_top5_accuracy = e.softs(num_train_small_data,rank_labels[:,:5],T_train_data)
-        print("train_soft_top5_accuracy:", train_soft_top5_accuracy)
-        train_accuracy_history_5.append(train_soft_top5_accuracy) 
-        # soft-top10を求める
-        train_soft_top10_accuracy = e.softs(num_train_small_data,rank_labels[:,:10],T_train_data) 
-        print("train_soft_top10_accuracy:", train_soft_top10_accuracy)
-        train_accuracy_history_10.append(train_soft_top10_accuracy)
-        # hard-top2を求める
-        train_hard_top2_accuracy = e.hards(num_train_small_data,rank_labels[:,:2],T_train_data)
-        print("train_hard_top2_accuracy:", train_hard_top2_accuracy) 
-        train_accuracy_history_2_hard.append(train_hard_top2_accuracy)
-        # hard-top3を求める
-        train_hard_top3_accuracy = e.hards(num_train_small_data,rank_labels[:,:3],T_train_data)
-        print("train_hard_top3_accuracy:", train_hard_top3_accuracy) 
-        train_accuracy_history_3_hard.append(train_hard_top3_accuracy)
-        # hard-top4を求める
-        train_hard_top4_accuracy = e.hards(num_train_small_data,rank_labels[:,:4],T_train_data)
-        print("train_hard_top4_accuracy:", train_hard_top4_accuracy) 
-        train_accuracy_history_4_hard.append(train_hard_top4_accuracy)
-        # retrieval-top2を求める
-        train_retrieval_top2_accuracy = e.retrievals(num_train_small_data,rank_labels[:,:2],T_train_data)
-        print("train_retrieval_top2_accuracy:", train_retrieval_top2_accuracy) 
-        train_accuracy_history_2_retrieval.append(train_retrieval_top2_accuracy)
-        # retrieval-top3を求める
-        train_retrieval_top3_accuracy = e.retrievals(num_train_small_data,rank_labels[:,:3],T_train_data)
-        print("train_retrieval_top3_accuracy:", train_retrieval_top3_accuracy) 
-        train_accuracy_history_3_retrieval.append(train_retrieval_top3_accuracy)
-        # retrieval-top4を求める
-        train_retrieval_top4_accuracy = e.retrievals(num_train_small_data,rank_labels[:,:4],T_train_data)
-        print("train_retrieval_top4_accuracy:", train_retrieval_top4_accuracy) 
-        train_accuracy_history_4_retrieval.append(train_retrieval_top4_accuracy)
+        softs_K = [1,2,5,10]
+        s_K = []
+        # 最初のsoft top-kを求める
+        for soft_k in softs_K:
+            train_soft_top1_accuracy = e.softs(num_train_small_data,rank_labels[:,:soft_k],T_train_data)
+            print("train_soft_topi:", soft_k)
+            print("accuracy:", train_soft_top1_accuracy)
+            train_accuracy_history.append(train_soft_top1_accuracy)
+        s_K.append(train_accuracy_history)
+        s = np.array(s_K).reshape(int((np.array(s_K).size)/len(softs_K)), len(softs_K))
+        print("s",s)
         
-        # 検証用データセットの交差エントロピー誤差を表示する
-        valid_loss = M.metric_loss_average(
-                model, X_valid, T_valid, num_valid_batches, False)
-        loss_valid_history.append(valid_loss)
-        print ("[valid] Loss:", valid_loss)
-        
-        # 学習曲線をプロットする
-        # plot learning curves
-        plt.subplot(1, 2, 1)
-        plt.title("Loss")
-        plt.plot(loss_train_history)
-        plt.plot(loss_valid_history)
-        plt.legend(["train", "valid"], loc="best")
-        plt.ylim([0.0, 0.02])
-        plt.grid()
-                
-        plt.subplot(1, 2, 2)
-        plt.title("Accuracy")
-        plt.plot(train_accuracy_history_1)
-        plt.plot(train_accuracy_history_2)
-        plt.plot(train_accuracy_history_5)
-        plt.plot(train_accuracy_history_10)
-        plt.legend(["train soft top-1","train soft top-2","train soft top-5","train soft top-10"], loc="best")
-        plt.ylim([90, 100])
-        plt.grid()
-        
-        plt.tight_layout()
-        plt.show()
-        plt.draw()
+        hards_K = [2,3,4]
+        h_K = []
+        # hard top-kを求める
+        for hard_k in hards_K:
+            train_hard_top1_accuracy = e.hards(num_train_small_data,rank_labels[:,:hard_k],T_train_data)
+            print("train_hard_topi:", hard_k)
+            print("accuracy:", train_hard_top1_accuracy)
+            train_accuracy_history_hard.append(train_hard_top1_accuracy)
+        h_K.append(train_accuracy_history_hard)
+        h = np.array(h_K).reshape(int((np.array(h_K).size)/len(hards_K)), len(hards_K))
+        print("h",h)
 
-        # 検証データの誤差が良ければwの最善値を保存する
-        if valid_loss <= valid_loss_best:
-            model_best = copy.deepcopy(model)
-            epoch_best = epoch
-            valid_loss_best = valid_loss
-            print ("epoch_best:", epoch_best)
-            print ("valid_loss_best:", valid_loss_best)
-            
-    # テストデータセットの交差エントロピー誤差を表示する
-    test_loss = M.metric_loss_average(
-            model_best, X_test, T_test, num_valid_batches, False)
-    print ("[valid] Loss (best):", valid_loss_best)
-    print ("[test] Loss:", test_loss)
-    print ("Best epoch:", epoch_best)
-    print ("Finish epoch:", epoch)
-    print ("Batch size:", batch_size)
-    print ("Learning rate:", learning_rate)
+        retrievals_K = [2,3,4]
+        r_K = []
+        # hard top-kを求める
+        for ret_k in retrievals_K:
+            train_ret_top1_accuracy = e.retrievals(num_train_small_data,rank_labels[:,:hard_k],T_train_data)
+            print("train_ret_topi:", ret_k)
+            print("accuracy:", train_ret_top1_accuracy)
+            train_accuracy_history_retrieval.append(train_ret_top1_accuracy)
+        r_K.append(train_accuracy_history_retrieval)
+        r = np.array(r_K).reshape(int((np.array(r_K).size)/len(retrievals_K)), len(retrievals_K))
+        print("r",r)
+
+        
+#        # 検証用データセットの交差エントロピー誤差を表示する
+#        valid_loss = M.metric_loss_average(
+#                model, X_valid, T_valid, num_valid_batches, False)
+#        loss_valid_history.append(valid_loss)
+#        print ("[valid] Loss:", valid_loss)
+#        
+#        # 学習曲線をプロットする
+#        # plot learning curves
+#        plt.subplot(1, 2, 1)
+#        plt.title("Loss")
+#        plt.plot(loss_train_history)
+#        plt.plot(loss_valid_history)
+#        plt.legend(["train", "valid"], loc="best")
+#        plt.ylim([0.0, 0.02])
+#        plt.grid()
+#                
+#        plt.subplot(1, 2, 2)
+#        plt.title("Accuracy")
+#        plt.plot(train_accuracy_history_1)
+#        plt.plot(train_accuracy_history_2)
+#        plt.plot(train_accuracy_history_5)
+#        plt.plot(train_accuracy_history_10)
+#        plt.legend(["train soft top-1","train soft top-2","train soft top-5","train soft top-10"], loc="best")
+#        plt.ylim([90, 100])
+#        plt.grid()
+#        
+#        plt.tight_layout()
+#        plt.show()
+#        plt.draw()
+#
+#        # 検証データの誤差が良ければwの最善値を保存する
+#        if valid_loss <= valid_loss_best:
+#            model_best = copy.deepcopy(model)
+#            epoch_best = epoch
+#            valid_loss_best = valid_loss
+#            print ("epoch_best:", epoch_best)
+#            print ("valid_loss_best:", valid_loss_best)
+#            
+#    # テストデータセットの交差エントロピー誤差を表示する
+#    test_loss = M.metric_loss_average(
+#            model_best, X_test, T_test, num_valid_batches, False)
+#    print ("[valid] Loss (best):", valid_loss_best)
+#    print ("[test] Loss:", test_loss)
+#    print ("Best epoch:", epoch_best)
+#    print ("Finish epoch:", epoch)
+#    print ("Batch size:", batch_size)
+#    print ("Learning rate:", learning_rate)
