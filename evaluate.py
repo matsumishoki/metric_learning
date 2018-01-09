@@ -21,6 +21,20 @@ from chainer.cuda import cupy
 import MNIST_convnet as M
 from sklearn.metrics import pairwise_distances
 
+def softs(num_train_small_data,rank_labels,T_data, softs_K):
+    soft_accuracy = []
+    softs_accuracies = []
+    for soft_k in softs_K:
+        rank_soft_k_rabels = rank_labels[:,:soft_k]
+        cheak_True_or_False = []
+        for i in range(num_train_small_data):
+            soft_top = T_data[i]==rank_soft_k_rabels[i]
+            cheak_True_or_False.append(np.any(soft_top))
+        average_soft_top_accuracy = (np.count_nonzero(cheak_True_or_False)/num_train_small_data)*100
+        soft_accuracy.append(average_soft_top_accuracy)
+    softs_accuracies.append(soft_accuracy)
+    return softs_accuracies
+
 def making_top_k_data(D,labels,K):
         sorted_D=[]
         rank_labels=[]
@@ -32,16 +46,6 @@ def making_top_k_data(D,labels,K):
             # 最初の距離は0であるため除去する
             rank_labels.append(ranked_label[1:])
         return np.array(rank_labels)
-    
-    
-
-def softs(num_train_small_data,rank_labels,T_data):
-    cheak_True_or_False = []
-    for i in range(num_train_small_data):
-        soft_top = T_data[i]==rank_labels[i]
-        cheak_True_or_False.append(np.any(soft_top))
-    average_soft_top_accuracy = (np.count_nonzero(cheak_True_or_False)/num_train_small_data)*100 
-    return average_soft_top_accuracy
 
 
 def hards(num_train_small_data,rank_labels,T_data):
