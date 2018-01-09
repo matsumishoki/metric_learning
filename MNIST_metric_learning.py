@@ -101,18 +101,8 @@ if __name__ == '__main__':
         # 訓練データをX_trainからY_trainに変換する
         Y_train = []
         train_extract_data = mdp.make_data_perm_data(T_train, train_extract_size)
-        x_train_data = X_train[train_extract_data]
-        T_train_data = T_train[train_extract_data]
+        D, T_train_data = mdp.distance_and_T_data(X_train,T_train,train_extract_data,model)
         num_train_small_data = len(T_train_data)
-        with chainer.no_backprop_mode():
-            x_train_data = cuda.to_gpu(x_train_data)            
-            y_train = model(x_train_data, False)
-            Y_train.append(y_train.array)
-
-        # Yから距離行列Dに変換する
-        Y_train = cuda.to_cpu(Y_train)
-        Y_train = np.vstack(Y_train)
-        D = pairwise_distances(Y_train)
 
         K = 11  # top10までのKを定義する
         rank_labels = e.making_top_k_data(D, T_train_data, K)
