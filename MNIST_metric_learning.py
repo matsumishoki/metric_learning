@@ -51,14 +51,14 @@ if __name__ == '__main__':
     optimizer = optimizers.Adam(learning_rate)
     optimizer.setup(model)
 
-    loss_train_history = []
+    # 訓練データのtop-kを格納する空のリストを定義する
     train_softs_accuracies=[]
     train_hards_accuracies=[]
     train_retrievals_accuracies=[]
+    
+    loss_train_history = []
     loss_valid_history = []
-    valid_accuracy_history = []
 
-    valid_accuracy_best = 0
     valid_loss_best = 10
     num_batches = num_train // batch_size  # ミニバッチの個数
     train_extract_size =100 # 抽出するデータ量を定義する
@@ -99,7 +99,7 @@ if __name__ == '__main__':
         loss_train_history.append(train_loss)
         print ("[train] Loss:", train_loss)
         
-        # 訓練データをX_trainからtop_kを求める
+        # 訓練データからtop_kを求める
         train_softs_accuracy, train_hard_accuracy, train_retrieval_accuracy = e.compute_soft_hard_retrieval_from_data(X_train, T_train, train_extract_size, model)
         softs_K = [1,2,5,10]
         train_softs_accuracies.append(train_softs_accuracy)
@@ -117,12 +117,8 @@ if __name__ == '__main__':
                 model, X_valid, T_valid, num_valid_batches, False)
         loss_valid_history.append(valid_loss)
         print ("[valid] Loss:", valid_loss)
-        
-        # 検証用データをX_trainからY_trainに変換する
-        Y_valid = []
-        valid_extract_data = mdp.make_data_perm_data(T_valid, train_extract_size)
-        D, T_valid_data = mdp.distance_and_T_data(X_valid,T_valid,valid_extract_data,model)
-        num_valid_small_data = len(T_valid_data)
+
+        # 検証データからtop_kを求める
         
         # lossの曲線をプロットする
         # plot learning curves
@@ -140,20 +136,20 @@ if __name__ == '__main__':
         
         plot.plot_all_top_k(train_soft_accuracies_data,train_hards_accuracies_data,train_retrievals_accuracies_data)
 
-#        # 検証データの誤差が良ければwの最善値を保存する
-#        if valid_loss <= valid_loss_best:
-#            model_best = copy.deepcopy(model)
-#            epoch_best = epoch
-#            valid_loss_best = valid_loss
-#            print ("epoch_best:", epoch_best)
-#            print ("valid_loss_best:", valid_loss_best)
-#            
-#    # テストデータセットの交差エントロピー誤差を表示する
-#    test_loss = M.metric_loss_average(
-#            model_best, X_test, T_test, num_valid_batches, False)
-#    print ("[valid] Loss (best):", valid_loss_best)
-#    print ("[test] Loss:", test_loss)
-#    print ("Best epoch:", epoch_best)
-#    print ("Finish epoch:", epoch)
-#    print ("Batch size:", batch_size)
-#    print ("Learning rate:", learning_rate)
+        # 検証データの誤差が良ければwの最善値を保存する
+        if valid_loss <= valid_loss_best:
+            model_best = copy.deepcopy(model)
+            epoch_best = epoch
+            valid_loss_best = valid_loss
+            print ("epoch_best:", epoch_best)
+            print ("valid_loss_best:", valid_loss_best)
+            
+    # テストデータセットの交差エントロピー誤差を表示する
+    test_loss = M.metric_loss_average(
+            model_best, X_test, T_test, num_valid_batches, False)
+    print ("[valid] Loss (best):", valid_loss_best)
+    print ("[test] Loss:", test_loss)
+    print ("Best epoch:", epoch_best)
+    print ("Finish epoch:", epoch)
+    print ("Batch size:", batch_size)
+    print ("Learning rate:", learning_rate)
