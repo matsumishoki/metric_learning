@@ -90,13 +90,13 @@ if __name__ == '__main__':
             optimizer.update()
         time_finish = time.time()
         time_elapsed = time_finish - time_start
-        print ("time_elapsed:", time_elapsed)
+#        print ("time_elapsed:", time_elapsed)
                        
         # 訓練データセットの交差エントロピー誤差を表示する
         train_loss = M.metric_loss_average(
                 model, X_train, T_train, num_batches, False)
         loss_train_history.append(train_loss)
-        print ("[train] Loss:", train_loss)
+#        print ("[train] Loss:", train_loss)
         
         # 訓練データをX_trainからY_trainに変換する
         Y_train = []
@@ -118,12 +118,17 @@ if __name__ == '__main__':
         rank_labels = e.making_top_k_data(D, T_train_data, K)
         softs_K = [1,2,5,10]
         s_K = []
+#        s = np.array(s_K).reshape(int((np.array(s_K).size)/len(softs_K)), len(softs_K))
+#        print("s",s)
         # 最初のsoft top-kを求める
         for soft_k in softs_K:
             train_soft_top1_accuracy = e.softs(num_train_small_data,rank_labels[:,:soft_k],T_train_data)
             print("train_soft_topi:", soft_k)
             print("accuracy:", train_soft_top1_accuracy)
+            # top-k番目の正解率をqppendする
             train_accuracy_history.append(train_soft_top1_accuracy)
+            print("train_accuracy_history:",train_accuracy_history)
+        # 全てのtop-kの正解率を格納する
         s_K.append(train_accuracy_history)
         s = np.array(s_K).reshape(int((np.array(s_K).size)/len(softs_K)), len(softs_K))
         print("s",s)
@@ -133,24 +138,24 @@ if __name__ == '__main__':
         # hard top-kを求める
         for hard_k in hards_K:
             train_hard_top1_accuracy = e.hards(num_train_small_data,rank_labels[:,:hard_k],T_train_data)
-            print("train_hard_topi:", hard_k)
-            print("accuracy:", train_hard_top1_accuracy)
+#            print("train_hard_topi:", hard_k)
+#            print("accuracy:", train_hard_top1_accuracy)
             train_accuracy_history_hard.append(train_hard_top1_accuracy)
         h_K.append(train_accuracy_history_hard)
         h = np.array(h_K).reshape(int((np.array(h_K).size)/len(hards_K)), len(hards_K))
-        print("h",h)
+#        print("h",h)
 
         retrievals_K = [2,3,4]
         r_K = []
-        # hard top-kを求める
+        # retrievals top-kを求める
         for ret_k in retrievals_K:
-            train_ret_top1_accuracy = e.retrievals(num_train_small_data,rank_labels[:,:hard_k],T_train_data)
-            print("train_ret_topi:", ret_k)
-            print("accuracy:", train_ret_top1_accuracy)
+            train_ret_top1_accuracy = e.retrievals(num_train_small_data,rank_labels[:,:ret_k],T_train_data)
+#            print("train_ret_topi:", ret_k)
+#            print("accuracy:", train_ret_top1_accuracy)
             train_accuracy_history_retrieval.append(train_ret_top1_accuracy)
         r_K.append(train_accuracy_history_retrieval)
         r = np.array(r_K).reshape(int((np.array(r_K).size)/len(retrievals_K)), len(retrievals_K))
-        print("r",r)
+#        print("r",r)
 
         
 #        # 検証用データセットの交差エントロピー誤差を表示する
