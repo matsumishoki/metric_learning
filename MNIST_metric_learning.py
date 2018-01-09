@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     # 超パラメータの定義
     learning_rate = 0.0001  # learning_rate(学習率)を定義する
-    max_iteration = 3      # 学習させる回数
+    max_iteration = 2      # 学習させる回数
     batch_size = 300       # ミニバッチ1つあたりのサンプル数
  
     model = M.ConvNet().to_gpu()
@@ -64,6 +64,7 @@ if __name__ == '__main__':
     num_valid_batches = num_valid // batch_size
     num_test_batches = num_test // batch_size
     i = 0
+    train_softs_accuracies=[]
     # 学習させるループ
     for epoch in range(max_iteration):
         print ("epoch:", epoch)
@@ -116,22 +117,11 @@ if __name__ == '__main__':
 
         K = 11  # top10までのKを定義する
         rank_labels = e.making_top_k_data(D, T_train_data, K)
+        # trainのsoftを求める
         softs_K = [1,2,5,10]
-        s_K = []
-#        s = np.array(s_K).reshape(int((np.array(s_K).size)/len(softs_K)), len(softs_K))
-#        print("s",s)
-        # 最初のsoft top-kを求める
-        for soft_k in softs_K:
-            train_soft_top1_accuracy = e.softs(num_train_small_data,rank_labels[:,:soft_k],T_train_data)
-            print("train_soft_topi:", soft_k)
-            print("accuracy:", train_soft_top1_accuracy)
-            # top-k番目の正解率をqppendする
-            train_accuracy_history.append(train_soft_top1_accuracy)
-            print("train_accuracy_history:",train_accuracy_history)
-        # 全てのtop-kの正解率を格納する
-        s_K.append(train_accuracy_history)
-        s = np.array(s_K).reshape(int((np.array(s_K).size)/len(softs_K)), len(softs_K))
-        print("s",s)
+        train_softs_accuracy = e.softs(num_train_small_data,rank_labels,T_train_data,softs_K)
+        train_softs_accuracies.append(train_softs_accuracy)
+        train_soft_accuracies_data = np.array(train_softs_accuracies).reshape(epoch+1, len(softs_K))
         
         hards_K = [2,3,4]
         h_K = []
