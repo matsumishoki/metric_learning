@@ -6,25 +6,25 @@ Created on Tue Jan  9 19:01:27 2018
 """
 import matplotlib.pyplot as plt
 
-def plot_all_top_k(train_soft_accuracies_data,train_hards_accuracies_data,train_retrievals_accuracies_data):
+def plot_all_top_k(soft_accuracies_data,hards_accuracies_data,retrievals_accuracies_data):
     # 学習曲線をプロットする
     # plot learning curves            
     plt.subplot(1, 2, 1)
-    plt.title("train_soft")
-    plt.plot(train_soft_accuracies_data[:,0])
-    plt.plot(train_soft_accuracies_data[:,1])
-    plt.plot(train_soft_accuracies_data[:,2])
-    plt.plot(train_soft_accuracies_data[:,3])
-    plt.legend(["train soft top-1","train soft top-2","train soft top-5","train soft top-10"], loc="best")
+    plt.title("soft")
+    plt.plot(soft_accuracies_data[:,0])
+    plt.plot(soft_accuracies_data[:,1])
+    plt.plot(soft_accuracies_data[:,2])
+    plt.plot(soft_accuracies_data[:,3])
+    plt.legend(["soft top-1","soft top-2","soft top-5","soft top-10"], loc="best")
     plt.ylim([80, 100])
     plt.grid()
 
     plt.subplot(1, 2, 2)
-    plt.title("train_hard")
-    plt.plot(train_hards_accuracies_data[:,0])
-    plt.plot(train_hards_accuracies_data[:,1])
-    plt.plot(train_hards_accuracies_data[:,2])
-    plt.legend(["train hard top-1","train hard top-2","train hard top-5"], loc="best")
+    plt.title("hard")
+    plt.plot(hards_accuracies_data[:,0])
+    plt.plot(hards_accuracies_data[:,1])
+    plt.plot(hards_accuracies_data[:,2])
+    plt.legend(["hard top-1","hard top-2","hard top-5"], loc="best")
     plt.ylim([80, 100])
     plt.grid()
         
@@ -33,11 +33,11 @@ def plot_all_top_k(train_soft_accuracies_data,train_hards_accuracies_data,train_
     plt.draw()
     
     plt.subplot(1, 2, 1)
-    plt.title("train_retrieval")
-    plt.plot(train_retrievals_accuracies_data[:,0])
-    plt.plot(train_retrievals_accuracies_data[:,1])
-    plt.plot(train_retrievals_accuracies_data[:,2])
-    plt.legend(["train retrieval top-1","train retrieval top-2","train retrieval top-5"], loc="best")
+    plt.title("retrieval")
+    plt.plot(retrievals_accuracies_data[:,0])
+    plt.plot(retrievals_accuracies_data[:,1])
+    plt.plot(retrievals_accuracies_data[:,2])
+    plt.legend(["retrieval top-1","retrieval top-2","retrieval top-5"], loc="best")
     plt.ylim([80, 100])
     plt.grid()
     
