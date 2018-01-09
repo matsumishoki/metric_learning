@@ -21,6 +21,19 @@ from chainer.cuda import cupy
 import MNIST_convnet as M
 from sklearn.metrics import pairwise_distances
 
+
+def making_top_k_data(D,labels,K):
+        sorted_D=[]
+        rank_labels=[]
+        for d_i in D:
+            top_k_indexes = np.argpartition(d_i, K)[:K]
+            sorted_top_k_indexes = top_k_indexes[np.argsort(d_i[top_k_indexes])]
+            sorted_D.append(sorted_top_k_indexes)
+            ranked_label = labels[sorted_top_k_indexes]
+            # 最初の距離は0であるため除去する
+            rank_labels.append(ranked_label[1:])
+        return np.array(rank_labels)
+
 def softs(num_train_small_data,rank_labels,T_data, softs_K):
     soft_accuracy = []
     softs_accuracies = []
@@ -35,32 +48,31 @@ def softs(num_train_small_data,rank_labels,T_data, softs_K):
     softs_accuracies.append(soft_accuracy)
     return softs_accuracies
 
-def making_top_k_data(D,labels,K):
-        sorted_D=[]
-        rank_labels=[]
-        for d_i in D:
-            top_k_indexes = np.argpartition(d_i, K)[:K]
-            sorted_top_k_indexes = top_k_indexes[np.argsort(d_i[top_k_indexes])]
-            sorted_D.append(sorted_top_k_indexes)
-            ranked_label = labels[sorted_top_k_indexes]
-            # 最初の距離は0であるため除去する
-            rank_labels.append(ranked_label[1:])
-        return np.array(rank_labels)
+def hards(num_train_small_data,rank_labels,T_data, hards_K):
+    hard_accuracy = []
+    hards_accuracies = []
+    for hard_k in hards_K:
+        rank_hard_k_rabels = rank_labels[:,:hard_k]
+        cheak_True_or_False = []
+        for i in range(num_train_small_data):
+            hard_top = T_data[i]==rank_hard_k_rabels[i]
+            cheak_True_or_False.append(np.all(hard_top))
+        average_hard_top_accuracy = (np.count_nonzero(cheak_True_or_False)/num_train_small_data)*100 
+        hard_accuracy.append(average_hard_top_accuracy)
+    hards_accuracies.append(hard_accuracy)
+    return hards_accuracies
 
 
-def hards(num_train_small_data,rank_labels,T_data):
-    cheak_True_or_False = []
-    for i in range(num_train_small_data):
-        hard_top = T_data[i]==rank_labels[i]
-        cheak_True_or_False.append(np.all(hard_top))
-    average_hard_top_accuracy = (np.count_nonzero(cheak_True_or_False)/num_train_small_data)*100 
-    return average_hard_top_accuracy
-
-
-def retrievals(num_train_small_data,rank_labels,T_data):
-    cheak_True_or_False = []
-    for i in range(num_train_small_data):
-        retrievals_top = T_data[i]==rank_labels[i]
-        cheak_True_or_False.append(np.mean(retrievals_top))
-    average_retrievals_top_accuracy = (np.count_nonzero(cheak_True_or_False)/num_train_small_data)*100 
-    return average_retrievals_top_accuracy
+def retrievals(num_train_small_data,rank_labels,T_data, retrievals_K):
+    retrieval_accuracy = []
+    retrievals_accuracies = []
+    for retrieval_k in retrievals_K:
+        rank_retrieval_k_rabels = rank_labels[:,:retrieval_k]
+        cheak_True_or_False = []
+        for i in range(num_train_small_data):
+            retrievals_top = T_data[i]==rank_retrieval_k_rabels[i]
+            cheak_True_or_False.append(np.mean(retrievals_top))
+        average_retrievals_top_accuracy = (np.count_nonzero(cheak_True_or_False)/num_train_small_data)*100 
+        retrieval_accuracy.append(average_retrievals_top_accuracy)
+    retrievals_accuracies.append(retrieval_accuracy)
+    return retrievals_accuracies
