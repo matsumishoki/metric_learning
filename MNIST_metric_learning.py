@@ -56,12 +56,17 @@ if __name__ == '__main__':
     train_hards_accuracies=[]
     train_retrievals_accuracies=[]
     
+    # 検証データのtop-kを格納する空のリストを定義する
+    valid_softs_accuracies=[]
+    valid_hards_accuracies=[]
+    valid_retrievals_accuracies=[]
+    
     loss_train_history = []
     loss_valid_history = []
 
     valid_loss_best = 10
     num_batches = num_train // batch_size  # ミニバッチの個数
-    train_extract_size =100 # 抽出するデータ量を定義する
+    extract_size =100 # 抽出するデータ量を定義する
     num_valid_batches = num_valid // batch_size
     num_test_batches = num_test // batch_size
     i = 0
@@ -100,7 +105,7 @@ if __name__ == '__main__':
         print ("[train] Loss:", train_loss)
         
         # 訓練データからtop_kを求める
-        train_softs_accuracy, train_hard_accuracy, train_retrieval_accuracy = e.compute_soft_hard_retrieval_from_data(X_train, T_train, train_extract_size, model)
+        train_softs_accuracy, train_hard_accuracy, train_retrieval_accuracy = e.compute_soft_hard_retrieval_from_data(X_train, T_train, extract_size, model)
         softs_K = [1,2,5,10]
         train_softs_accuracies.append(train_softs_accuracy)
         train_soft_accuracies_data = np.array(train_softs_accuracies).reshape(epoch+1, len(softs_K))
@@ -118,7 +123,25 @@ if __name__ == '__main__':
         loss_valid_history.append(valid_loss)
         print ("[valid] Loss:", valid_loss)
 
+
+        # 検証データの誤差が良ければwの最善値を保存する
+        if valid_loss <= valid_loss_best:
+            model_best = copy.deepcopy(model)
+            epoch_best = epoch
+            valid_loss_best = valid_loss
+            print ("epoch_best:", epoch_best)
+            print ("valid_loss_best:", valid_loss_best)
         # 検証データからtop_kを求める
+        valid_softs_accuracy, valid_hard_accuracy, valid_retrieval_accuracy = e.compute_soft_hard_retrieval_from_data(X_valid, T_valid, extract_size, model)
+        softs_K = [1,2,5,10]
+        valid_softs_accuracies.append(valid_softs_accuracy)
+        valid_soft_accuracies_data = np.array(valid_softs_accuracies).reshape(epoch+1, len(softs_K))
+        hards_K = [2,3,4]
+        valid_hards_accuracies.append(valid_hard_accuracy)
+        valid_hards_accuracies_data = np.array(valid_hards_accuracies).reshape(epoch+1, len(hards_K))
+        retrievals_K = [2,3,4]
+        valid_retrievals_accuracies.append(valid_retrieval_accuracy)
+        valid_retrievals_accuracies_data = np.array(valid_retrievals_accuracies).reshape(epoch+1, len(retrievals_K))
         
         # lossの曲線をプロットする
         # plot learning curves
@@ -133,16 +156,10 @@ if __name__ == '__main__':
         plt.tight_layout()
         plt.show()
         plt.draw()
-        
+        print("train curves")
         plot.plot_all_top_k(train_soft_accuracies_data,train_hards_accuracies_data,train_retrievals_accuracies_data)
-
-        # 検証データの誤差が良ければwの最善値を保存する
-        if valid_loss <= valid_loss_best:
-            model_best = copy.deepcopy(model)
-            epoch_best = epoch
-            valid_loss_best = valid_loss
-            print ("epoch_best:", epoch_best)
-            print ("valid_loss_best:", valid_loss_best)
+        print("valid curves")
+        plot.plot_all_top_k(valid_soft_accuracies_data,valid_hards_accuracies_data,valid_retrievals_accuracies_data)
             
     # テストデータセットの交差エントロピー誤差を表示する
     test_loss = M.metric_loss_average(
