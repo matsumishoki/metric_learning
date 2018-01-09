@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     # 超パラメータの定義
     learning_rate = 0.0001  # learning_rate(学習率)を定義する
-    max_iteration = 10      # 学習させる回数
+    max_iteration = 2      # 学習させる回数
     batch_size = 300       # ミニバッチ1つあたりのサンプル数
  
     model = M.ConvNet().to_gpu()
@@ -74,12 +74,6 @@ if __name__ == '__main__':
     # 学習させるループ
     for epoch in range(max_iteration):
         print ("epoch:", epoch)
-        w_1_grad_norms = []
-        w_2_grad_norms = []
-        w_3_grad_norms = []
-        b_1_grad_norms = []
-        b_2_grad_norms = []
-        b_3_grad_norms = []
         #ループの時間を計測する
         time_start = time.time()
         perm = np.random.permutation(num_train)
@@ -113,7 +107,6 @@ if __name__ == '__main__':
         
         # 訓練データをX_trainからY_trainに変換する
         Y_train = []
-        T_train_data = []
         train_extract_data = mdp.make_data_perm_data(T_train, train_extract_size)
         x_train_data = X_train[train_extract_data]
         T_train_data = T_train[train_extract_data]
@@ -127,74 +120,47 @@ if __name__ == '__main__':
         Y_train = cuda.to_cpu(Y_train)
         Y_train = np.vstack(Y_train)
         D = pairwise_distances(Y_train)
-        
-        # softを求める
-        sorted_D=[]
-        rank_labels_1=[]
-        rank_labels_2=[]
-        rank_labels_3=[]
-        rank_labels_4=[]
-        rank_labels_5=[]
-        rank_labels_10=[]
-        softs=[] 
+
         K = 11  # top10までのKを定義する
-        for d_i in D:
-            top_k_indexes = np.argpartition(d_i, K)[:K]
-            sorted_top_k_indexes = top_k_indexes[np.argsort(d_i[top_k_indexes])]
-            sorted_D.append(sorted_top_k_indexes)
-            ranked_label = T_train_data[sorted_top_k_indexes]
-#            # 最初の距離は0であるため除去する
-#            rank_labels.append(ranked_label[1:])
-            # 最初のsoft top-1の準備
-            rank_labels_1.append(ranked_label[1])
-            # top-2の準備
-            rank_labels_2.append(ranked_label[1:3])
-            # top-3の準備
-            rank_labels_3.append(ranked_label[1:4])
-            # top-4の準備
-            rank_labels_4.append(ranked_label[1:5])
-            # soft top-5の準備
-            rank_labels_5.append(ranked_label[1:6])
-            # soft top-10の準備
-            rank_labels_10.append(ranked_label[1:11])
+        rank_labels = e.making_top_k_data(D, T_train_data, K)
         # 最初のsoft top-1を求める
-        train_soft_top1_accuracy = e.softs(num_train_small_data,rank_labels_1,T_train_data)
+        train_soft_top1_accuracy = e.softs(num_train_small_data,rank_labels[:,:1],T_train_data)
         print("train_soft_top1_accuracy:", train_soft_top1_accuracy)
         train_accuracy_history_1.append(train_soft_top1_accuracy)
         # soft-top2を求める
-        train_soft_top2_accuracy = e.softs(num_train_small_data,rank_labels_2,T_train_data)
+        train_soft_top2_accuracy = e.softs(num_train_small_data,rank_labels[:,:2],T_train_data)
         print("train_soft_top2_accuracy:", train_soft_top2_accuracy) 
         train_accuracy_history_2.append(train_soft_top2_accuracy)
         # soft-top5を求める
-        train_soft_top5_accuracy = e.softs(num_train_small_data,rank_labels_5,T_train_data)
+        train_soft_top5_accuracy = e.softs(num_train_small_data,rank_labels[:,:5],T_train_data)
         print("train_soft_top5_accuracy:", train_soft_top5_accuracy)
         train_accuracy_history_5.append(train_soft_top5_accuracy) 
         # soft-top10を求める
-        train_soft_top10_accuracy = e.softs(num_train_small_data,rank_labels_10,T_train_data) 
+        train_soft_top10_accuracy = e.softs(num_train_small_data,rank_labels[:,:10],T_train_data) 
         print("train_soft_top10_accuracy:", train_soft_top10_accuracy)
         train_accuracy_history_10.append(train_soft_top10_accuracy)
         # hard-top2を求める
-        train_hard_top2_accuracy = e.hards(num_train_small_data,rank_labels_2,T_train_data)
+        train_hard_top2_accuracy = e.hards(num_train_small_data,rank_labels[:,:2],T_train_data)
         print("train_hard_top2_accuracy:", train_hard_top2_accuracy) 
         train_accuracy_history_2_hard.append(train_hard_top2_accuracy)
         # hard-top3を求める
-        train_hard_top3_accuracy = e.hards(num_train_small_data,rank_labels_3,T_train_data)
+        train_hard_top3_accuracy = e.hards(num_train_small_data,rank_labels[:,:3],T_train_data)
         print("train_hard_top3_accuracy:", train_hard_top3_accuracy) 
         train_accuracy_history_3_hard.append(train_hard_top3_accuracy)
         # hard-top4を求める
-        train_hard_top4_accuracy = e.hards(num_train_small_data,rank_labels_4,T_train_data)
+        train_hard_top4_accuracy = e.hards(num_train_small_data,rank_labels[:,:4],T_train_data)
         print("train_hard_top4_accuracy:", train_hard_top4_accuracy) 
         train_accuracy_history_4_hard.append(train_hard_top4_accuracy)
         # retrieval-top2を求める
-        train_retrieval_top2_accuracy = e.retrievals(num_train_small_data,rank_labels_2,T_train_data)
+        train_retrieval_top2_accuracy = e.retrievals(num_train_small_data,rank_labels[:,:2],T_train_data)
         print("train_retrieval_top2_accuracy:", train_retrieval_top2_accuracy) 
         train_accuracy_history_2_retrieval.append(train_retrieval_top2_accuracy)
         # retrieval-top3を求める
-        train_retrieval_top3_accuracy = e.retrievals(num_train_small_data,rank_labels_3,T_train_data)
+        train_retrieval_top3_accuracy = e.retrievals(num_train_small_data,rank_labels[:,:3],T_train_data)
         print("train_retrieval_top3_accuracy:", train_retrieval_top3_accuracy) 
         train_accuracy_history_3_retrieval.append(train_retrieval_top3_accuracy)
         # retrieval-top4を求める
-        train_retrieval_top4_accuracy = e.retrievals(num_train_small_data,rank_labels_4,T_train_data)
+        train_retrieval_top4_accuracy = e.retrievals(num_train_small_data,rank_labels[:,:4],T_train_data)
         print("train_retrieval_top4_accuracy:", train_retrieval_top4_accuracy) 
         train_accuracy_history_4_retrieval.append(train_retrieval_top4_accuracy)
         
