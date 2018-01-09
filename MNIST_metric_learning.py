@@ -132,7 +132,7 @@ if __name__ == '__main__':
             print ("epoch_best:", epoch_best)
             print ("valid_loss_best:", valid_loss_best)
         # 検証データからtop_kを求める
-        valid_softs_accuracy, valid_hard_accuracy, valid_retrieval_accuracy = e.compute_soft_hard_retrieval_from_data(X_valid, T_valid, extract_size, model)
+        valid_softs_accuracy, valid_hard_accuracy, valid_retrieval_accuracy = e.compute_soft_hard_retrieval_from_data(X_valid, T_valid, extract_size, model_best)
         softs_K = [1,2,5,10]
         valid_softs_accuracies.append(valid_softs_accuracy)
         valid_soft_accuracies_data = np.array(valid_softs_accuracies).reshape(epoch+1, len(softs_K))
@@ -163,7 +163,7 @@ if __name__ == '__main__':
             
     # テストデータセットの交差エントロピー誤差を表示する
     test_loss = M.metric_loss_average(
-            model_best, X_test, T_test, num_valid_batches, False)
+            model_best, X_test, T_test, num_test_batches, False)
     print ("[valid] Loss (best):", valid_loss_best)
     print ("[test] Loss:", test_loss)
     print ("Best epoch:", epoch_best)
