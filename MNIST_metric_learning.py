@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     # 超パラメータの定義
     learning_rate = 0.0001  # learning_rate(学習率)を定義する
-    max_iteration = 200      # 学習させる回数
+    max_iteration = 1      # 学習させる回数
     batch_size = 300       # ミニバッチ1つあたりのサンプル数
  
     model = M.ConvNet().to_gpu()
@@ -163,10 +163,24 @@ if __name__ == '__main__':
             
     # テストデータセットの交差エントロピー誤差を表示する
     test_loss = M.metric_loss_average(
-            model_best, X_test, T_test, num_test_batches, False)
+            model_best, X_test, T_test, num_valid_batches, False)
+    test_extract_size = min(np.bincount(T_test))
+    test_softs, test_hards, test_retrievals = e.compute_soft_hard_retrieval_from_data(X_test, T_test, test_extract_size, model_best)
     print ("[valid] Loss (best):", valid_loss_best)
     print ("[test] Loss:", test_loss)
     print ("Best epoch:", epoch_best)
     print ("Finish epoch:", epoch)
     print ("Batch size:", batch_size)
     print ("Learning rate:", learning_rate)
+    print()
+    for i, k in zip(range(len(softs_K)), softs_K):
+        print("soft top:{}".format(k))
+        print("accuracy:{}".format(test_softs[0][i]))
+    print()    
+    for i, k in zip(range(len(hards_K)), hards_K):
+        print("hard top:{}".format(k))
+        print("accuracy:{}".format(test_hards[0][i]))
+    print()    
+    for i, k in zip(range(len(retrievals_K)), retrievals_K):
+        print("retrieval top:{}".format(k))
+        print("accuracy:{}".format(test_retrievals[0][i]))
