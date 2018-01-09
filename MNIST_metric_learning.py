@@ -145,6 +145,7 @@ if __name__ == '__main__':
         
         # lossの曲線をプロットする
         # plot learning curves
+        plt.figure(figsize=(7,4))    
         plt.subplot(1, 2, 1)
         plt.title("Loss")
         plt.plot(loss_train_history)
